@@ -235,8 +235,24 @@
                 camera.position.z -= flySpeed;
                 particlesMesh.rotation.y += flySpeed * 0.01;
                 
+                // Immediately trigger the login card fade-in right as we fly into the node network
+                if (camera.position.z < 60 && !document.body.classList.contains('revealed')) {
+                    document.body.classList.add('revealed');
+                    preloader.classList.add('fade-out');
+                    document.body.classList.remove('preloader-active');
+                    
+                    if (loginCard) {
+                        loginCard.style.opacity = '1';
+                        loginCard.style.transform = 'scale(1) translateY(0)';
+                    }
+                }
+
                 // Stop animation and hide when we fly past
                 if (camera.position.z < -50) {
+                    setTimeout(() => {
+                        preloader.style.display = 'none';
+                        renderer.dispose();
+                    }, 500);
                     return; // Stop rendering
                 }
             }
@@ -251,25 +267,6 @@
             // Phase 1: Fade out text, accelerate particles
             textContainer.style.opacity = '0';
             isTransitioning = true;
-            
-            // Phase 2: Reveal the app
-            setTimeout(() => {
-                preloader.classList.add('fade-out');
-                document.body.classList.remove('preloader-active');
-                
-                if (loginCard) {
-                    loginCard.style.opacity = '1';
-                    loginCard.style.transform = 'scale(1) translateY(0)';
-                }
-                
-                // Clean up three.js to save memory
-                setTimeout(() => {
-                    preloader.style.display = 'none';
-                    renderer.dispose();
-                    geometry.dispose();
-                    material.dispose();
-                }, 1000);
-            }, 1200); // Time for the fly-through effect
         }, 3500); // 3.5 seconds fake loading time
     })();
 
