@@ -5,14 +5,13 @@
     document.body.classList.add('preloader-active');
 </script>
 
-<!-- Minimalist Glowing Circular Preloader Overlay -->
-<div class="preloader-overlay" id="preloader">
-    <div class="preloader-circle-container">
-        <!-- SVG Progress Ring -->
-        <svg class="preloader-svg" viewBox="0 0 280 280">
-            <circle class="preloader-track-circle" cx="140" cy="140" r="130"></circle>
-            <circle class="preloader-progress-circle" id="progressCircle" cx="140" cy="140" r="130"></circle>
-        </svg>
+<!-- ThreeJS Cinematic Preloader Overlay -->
+<div class="preloader-overlay" id="preloader" style="background-color: #0d0d0d; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; position: fixed; inset: 0;">
+    <canvas id="three-canvas" style="position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1;"></canvas>
+    
+    <div id="loading-text-container" style="position: absolute; bottom: 15%; z-index: 2; display: flex; flex-direction: column; align-items: center; pointer-events: none; opacity: 1; transition: opacity 0.5s ease;">
+        <h2 class="font-headline-lg text-[#FF6B35] tracking-[0.4em] uppercase drop-shadow-[0_0_10px_rgba(255,107,53,0.5)] animate-pulse" style="font-size: 1.25rem;">Establishing Connection</h2>
+        <span class="font-body-sm text-white/50 uppercase tracking-[0.2em] mt-2 text-xs">Securing Financial Nodes...</span>
     </div>
 </div>
 
@@ -108,41 +107,142 @@
     });
 
     // ============================================================
-    // PROGRESS LOADER LOGIC (NO THREE.JS / LIGHTWEIGHT SVG ONLY)
+    // CINEMATIC THREE.JS FINTECH LOADER
     // ============================================================
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
     (() => {
-        let progress = 0;
-        const progressCircle = document.getElementById('progressCircle');
+        const canvas = document.getElementById('three-canvas');
         const preloader = document.getElementById('preloader');
-        const maxOffset = 816.8;
+        const loginCard = document.getElementById('loginCard');
+        const textContainer = document.getElementById('loading-text-container');
 
-        function updateProgress() {
-            if (progress < 100) {
-                progress += Math.floor(Math.random() * 4) + 2;
-                if (progress > 100) progress = 100;
+        // Setup Scene
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x0d0d0d, 0.002);
 
-                const offset = maxOffset - (progress / 100) * maxOffset;
-                progressCircle.style.strokeDashoffset = offset;
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 100;
 
-                // Dynamic realistic loaded delay intervals
-                setTimeout(updateProgress, Math.random() * 30 + 15);
-            } else {
-                setTimeout(() => {
-                    preloader.classList.add('fade-out');
-                    document.body.classList.remove('preloader-active');
+        const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
 
-                    // Smooth reveal of login card
-                    const loginCard = document.getElementById('loginCard');
-                    if (loginCard) {
-                        loginCard.style.opacity = '1';
-                        loginCard.style.transform = 'scale(1) translateY(0)';
-                    }
-                }, 500);
-            }
+        // Create Financial Node Network (Particles)
+        const geometry = new THREE.BufferGeometry();
+        const particlesCount = 3000;
+        const posArray = new Float32Array(particlesCount * 3);
+        
+        // Sphere distribution
+        for(let i = 0; i < particlesCount * 3; i+=3) {
+            const r = 40 + Math.random() * 30;
+            const theta = Math.random() * Math.PI * 2;
+            const phi = Math.acos((Math.random() * 2) - 1);
+            
+            posArray[i] = r * Math.sin(phi) * Math.cos(theta);     // x
+            posArray[i+1] = r * Math.sin(phi) * Math.sin(theta);   // y
+            posArray[i+2] = r * Math.cos(phi);                     // z
         }
 
-        // Start loading simulation
-        setTimeout(updateProgress, 300);
+        geometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        
+        // Create a custom glowing material for the nodes
+        const material = new THREE.PointsMaterial({
+            size: 0.6,
+            color: 0xFF6B35, // Brand Orange
+            transparent: true,
+            opacity: 0.8,
+            blending: THREE.AdditiveBlending
+        });
+
+        const particlesMesh = new THREE.Points(geometry, material);
+        scene.add(particlesMesh);
+
+        // Add inner core
+        const coreGeom = new THREE.IcosahedronGeometry(15, 2);
+        const coreMat = new THREE.MeshBasicMaterial({
+            color: 0xFF6B35,
+            wireframe: true,
+            transparent: true,
+            opacity: 0.15
+        });
+        const coreMesh = new THREE.Mesh(coreGeom, coreMat);
+        scene.add(coreMesh);
+
+        // Add lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+
+        // Resize handling
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Animation Loop
+        let clock = new THREE.Clock();
+        let isTransitioning = false;
+        let flySpeed = 0;
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const elapsedTime = clock.getElapsedTime();
+
+            // Idle slow rotation
+            particlesMesh.rotation.y = elapsedTime * 0.08;
+            particlesMesh.rotation.x = elapsedTime * 0.04;
+            
+            coreMesh.rotation.y = elapsedTime * -0.2;
+            coreMesh.rotation.x = elapsedTime * -0.1;
+
+            // Pulsating core
+            const scale = 1 + Math.sin(elapsedTime * 2) * 0.05;
+            coreMesh.scale.set(scale, scale, scale);
+
+            // Transition Logic: Fly through the network
+            if (isTransitioning) {
+                flySpeed += 0.06;
+                camera.position.z -= flySpeed;
+                particlesMesh.rotation.y += flySpeed * 0.01;
+                
+                // Stop animation and hide when we fly past
+                if (camera.position.z < -50) {
+                    return; // Stop rendering
+                }
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        // Simulate Network Connection Delay then Transition
+        setTimeout(() => {
+            // Phase 1: Fade out text, accelerate particles
+            textContainer.style.opacity = '0';
+            isTransitioning = true;
+            
+            // Phase 2: Reveal the app
+            setTimeout(() => {
+                preloader.classList.add('fade-out');
+                document.body.classList.remove('preloader-active');
+                
+                if (loginCard) {
+                    loginCard.style.opacity = '1';
+                    loginCard.style.transform = 'scale(1) translateY(0)';
+                }
+                
+                // Clean up three.js to save memory
+                setTimeout(() => {
+                    preloader.style.display = 'none';
+                    renderer.dispose();
+                    geometry.dispose();
+                    material.dispose();
+                }, 1000);
+            }, 1200); // Time for the fly-through effect
+        }, 3500); // 3.5 seconds fake loading time
     })();
 
     // Simulated Google Modal controls
