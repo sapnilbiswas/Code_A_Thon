@@ -93,7 +93,14 @@ app.get('/stream', isLoggedIn, (req, res) => {
 });
 
 // --- Server Start ---
+const agenda = require('./server/jobs/agenda');
+
+mongoose.connection.once('open', async () => {
+    await agenda.start();
+    console.log('📋 Agenda job queue started');
+});
+app.set('agenda', agenda); // Make accessible in routes
 
 app.listen(3200,()=>{
-    console.log("server is running on port 3000")
+    console.log("server is running on port 3200")
 })
