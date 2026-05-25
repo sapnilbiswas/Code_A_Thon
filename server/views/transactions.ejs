@@ -69,12 +69,17 @@
                         <span class="material-symbols-outlined text-primary animate-pulse">input_circle</span>
                         AI Quick Ingest (SMS / UPI)
                     </h2>
-                    <p class="text-xs text-on-surface-variant mb-4">Paste your bank SMS or UPI notification to auto-populate the transaction form instantly!</p>
+                    <p class="text-xs text-on-surface-variant mb-4">Paste your bank SMS or UPI notification to save it directly to the database instantly!</p>
                     <div class="flex flex-col gap-3">
-                        <textarea id="quick-ingest-text" rows="2" class="w-full input-premium rounded-lg px-3 py-2 text-xs text-on-surface placeholder-outline focus:ring-0" placeholder="e.g. Sent $45.00 to Reliance Mart for Groceries on 2026-05-25"></textarea>
+                        <div class="relative w-full">
+                            <textarea id="quick-ingest-text" rows="2" class="w-full input-premium rounded-lg pl-3 pr-12 py-2 text-xs text-on-surface placeholder-outline focus:ring-0" placeholder="e.g. Sent $45.00 to Reliance Mart for Groceries on 2026-05-25"></textarea>
+                            <button id="voice-btn" onclick="startVoiceRecognition()" type="button" class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all flex items-center justify-center cursor-pointer shadow-sm border border-primary/20" title="Voice Input">
+                                <span class="material-symbols-outlined text-[18px]">mic</span>
+                            </button>
+                        </div>
                         <button onclick="parseQuickIngest()" type="button" class="btn-primary text-white text-xs font-semibold py-2.5 rounded-lg flex items-center justify-center gap-1">
                             <span class="material-symbols-outlined text-[16px]">psychology</span>
-                            Analyze & Populate Form
+                            Analyze & Save to DB
                         </button>
                     </div>
                 </div>
@@ -584,21 +589,97 @@
             }
         }
 
-        // Populate fields
-        if (amount) {
-            document.getElementById('amount').value = amount.toFixed(2);
-        }
-        document.getElementById('type').value = type;
-        document.getElementById('category').value = category;
-        document.getElementById('description').value = description;
+        // Instead of auto-populating, save directly to the DB
+        const formData = new URLSearchParams();
+        formData.append('amount', amount ? amount.toFixed(2) : 0);
+        formData.append('type', type);
+        formData.append('category', category);
+        formData.append('description', description);
 
-        // Visual flash success
-        const successToast = document.createElement('div');
-        successToast.className = 'fixed top-4 right-4 z-50 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg slide-in';
-        successToast.innerHTML = `Form Populated! Analyzed: <strong>${description}</strong> ($${amount ? amount.toFixed(2) : '0.00'})`;
-        document.body.appendChild(successToast);
-        setTimeout(() => successToast.remove(), 4000);
+        // Show loading state
+        const statusToast = document.createElement('div');
+        statusToast.className = 'fixed top-4 right-4 z-50 bg-primary text-white px-4 py-2 rounded-lg shadow-lg slide-in flex items-center gap-2';
+        statusToast.innerHTML = `<span class="material-symbols-outlined animate-spin text-sm">sync</span> Saving: <strong>${description}</strong>...`;
+        document.body.appendChild(statusToast);
+
+        fetch('/transactions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: formData.toString()
+        }).then(res => {
+            if (res.ok || res.redirected) {
+                statusToast.className = 'fixed top-4 right-4 z-50 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg slide-in flex items-center gap-2';
+                statusToast.innerHTML = `<span class="material-symbols-outlined text-sm">check_circle</span> Saved to DB: <strong>${description}</strong> ($${amount ? amount.toFixed(2) : '0.00'})`;
+                document.getElementById('quick-ingest-text').value = '';
+                setTimeout(() => window.location.reload(), 1500);
+            } else {
+                statusToast.className = 'fixed top-4 right-4 z-50 bg-error text-white px-4 py-2 rounded-lg shadow-lg slide-in flex items-center gap-2';
+                statusToast.innerHTML = `<span class="material-symbols-outlined text-sm">error</span> Error saving transaction. (Might exceed budget/balance)`;
+                setTimeout(() => statusToast.remove(), 4000);
+            }
+        }).catch(err => {
+            statusToast.className = 'fixed top-4 right-4 z-50 bg-error text-white px-4 py-2 rounded-lg shadow-lg slide-in flex items-center gap-2';
+            statusToast.innerHTML = `<span class="material-symbols-outlined text-sm">error</span> Network Error.`;
+            setTimeout(() => statusToast.remove(), 4000);
+        });
     }
+
+    // --- Phase 9: Voice-Activated AI Logging ---
+    function startVoiceRecognition() {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            alert('Your browser does not support Speech Recognition. Please try Chrome or Edge.');
+            return;
+        }
+
+        const btn = document.getElementById('voice-btn');
+        const icon = btn.querySelector('span');
+        const textarea = document.getElementById('quick-ingest-text');
+        
+        const recognition = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = 'en-US';
+
+        recognition.onstart = function() {
+            btn.classList.add('animate-pulse', 'bg-error', 'text-white', 'border-error');
+            btn.classList.remove('bg-primary/10', 'text-primary', 'border-primary/20');
+            icon.textContent = 'settings_voice';
+            textarea.placeholder = "Listening... Speak your expense now.";
+            textarea.value = ''; // Clear previous
+        };
+
+        recognition.onresult = function(event) {
+            const transcript = event.results[0][0].transcript;
+            textarea.value = transcript;
+            
+            // Instantly parse after speaking
+            setTimeout(() => {
+                parseQuickIngest();
+            }, 600);
+        };
+
+        recognition.onerror = function(event) {
+            console.error('Speech recognition error:', event.error);
+            textarea.placeholder = "Speech not recognized. Try again.";
+        };
+
+        recognition.onend = function() {
+            btn.classList.remove('animate-pulse', 'bg-error', 'text-white', 'border-error');
+            btn.classList.add('bg-primary/10', 'text-primary', 'border-primary/20');
+            icon.textContent = 'mic';
+            setTimeout(() => {
+                if (textarea.value === '') {
+                    textarea.placeholder = "e.g. Sent $45.00 to Reliance Mart for Groceries on 2026-05-25";
+                }
+            }, 3000);
+        };
+
+        recognition.start();
+    }
+    // --- End Voice Ingest ---
 
     let parsedTransactions = [];
     let selectedFile = null;

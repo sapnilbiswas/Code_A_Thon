@@ -110,25 +110,30 @@
                     </h3>
                 </div>
 
-                <!-- Card 3: System Health Score -->
+                <!-- Card 3: Financial Health Score -->
                 <div class="glass-card rounded-xl p-6 tilt-card hover-lift group cursor-default" onmouseleave="resetTilt(this)" onmousemove="tilt(event, this)">
                     <div class="flex justify-between items-start mb-4">
                         <div class="w-10 h-10 rounded-xl bg-tertiary-container/20 flex items-center justify-center text-tertiary-container shadow-[0_0_12px_rgba(204,142,0,0.1)]">
-                            <span class="material-symbols-outlined text-[22px]" style="font-variation-settings: 'FILL' 1;">health_and_safety</span>
+                            <span class="material-symbols-outlined text-[22px]" style="font-variation-settings: 'FILL' 1;">stars</span>
                         </div>
-                        <span class="bg-green-500/10 border border-green-500/20 px-2.5 py-1 rounded-full text-xs font-semibold text-green-500 flex items-center gap-1">Stable</span>
+                        <%
+                            let healthScore = (typeof currentUser !== 'undefined' && currentUser.overallHealthScore !== undefined) ? currentUser.overallHealthScore : 750;
+                            let healthRating = 'Good';
+                            let healthColor = 'text-green-500';
+                            let healthBg = 'bg-green-500';
+                            if (healthScore >= 800) { healthRating = 'Excellent'; healthColor = 'text-primary'; healthBg = 'bg-primary'; }
+                            else if (healthScore < 600) { healthRating = 'Needs Work'; healthColor = 'text-error'; healthBg = 'bg-error'; }
+                        %>
+                        <span class="<%= healthBg %>/10 border border-<%= healthBg %>/20 px-2.5 py-1 rounded-full text-xs font-semibold <%= healthColor %> flex items-center gap-1"><%= healthRating %></span>
                     </div>
-                    <p class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-2">System Health</p>
-                    <%
-                        let healthScore = (typeof currentUser !== 'undefined' && currentUser.overallHealthScore) ? currentUser.overallHealthScore : 98.2;
-                    %>
+                    <p class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-2">Financial Health Score</p>
                     <div class="flex items-center justify-between w-full mt-2 gap-4">
-                        <h3 class="text-xl sm:text-2xl md:text-3xl lg:text-lg xl:text-xl 2xl:text-2xl text-on-background font-bold tracking-tight flex items-baseline">
-                            <%= healthScore %><span class="text-xs text-on-surface-variant font-normal ml-0.5">%</span>
+                        <h3 class="text-xl sm:text-2xl md:text-3xl lg:text-lg xl:text-xl 2xl:text-2xl <%= healthColor %> font-bold tracking-tight flex items-baseline">
+                            <%= healthScore %><span class="text-[10px] text-on-surface-variant font-normal ml-1">/ 1000</span>
                         </h3>
                         <div class="flex flex-col items-end flex-grow max-w-[90px]">
-                            <div class="w-full bg-surface-container-high dark:bg-surface-container-lowest/20 rounded-full h-2 overflow-hidden border border-outline-variant/10">
-                                <div class="bg-gradient-to-r from-green-500 to-emerald-400 h-2 rounded-full transition-all duration-1000 animate-pulse" style="width: <%= healthScore %>%"></div>
+                            <div class="w-full bg-surface-container-high dark:bg-surface-container-lowest/20 rounded-full h-2.5 overflow-hidden border border-outline-variant/10 relative">
+                                <div class="<%= healthBg %> h-2.5 rounded-full transition-all duration-1000" style="width: <%= Math.min(100, Math.round(healthScore / 10)) %>%"></div>
                             </div>
                         </div>
                     </div>
@@ -410,6 +415,89 @@
                         View Detailed Analysis
                     </button>
                 </div>
+                </div>
+            </div>
+            
+            <!-- Extra Features Grid: Subscriptions & Time Machine -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-gutter mt-section-gap">
+                <!-- Phase 11: Zombie Subscription Detector -->
+                <div class="glass-card rounded-xl p-6 flex flex-col hover-lift">
+                    <div class="flex justify-between items-center mb-6">
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-error text-[24px]">warning</span>
+                            <h3 class="font-title-md text-title-md text-on-background">Zombie Subscriptions</h3>
+                        </div>
+                        <span class="text-[10px] bg-error/10 text-error px-2 py-1 rounded font-bold uppercase tracking-wider">Wealth Drain</span>
+                    </div>
+                    
+                    <div class="flex items-center justify-between mb-4 border-b border-outline-variant/20 pb-4">
+                        <p class="text-sm text-on-surface-variant">Estimated Annual Cost</p>
+                        <h4 class="font-headline-sm text-headline-sm text-error font-bold">
+                            $<%= (typeof totalAnnualSubscriptionCost !== 'undefined') ? totalAnnualSubscriptionCost.toLocaleString(undefined, {minimumFractionDigits: 2}) : '0.00' %>
+                        </h4>
+                    </div>
+
+                    <div class="flex-grow space-y-3 overflow-y-auto max-h-[300px] pr-1">
+                        <% if (typeof zombieSubscriptions !== 'undefined' && zombieSubscriptions.length > 0) { %>
+                            <% zombieSubscriptions.forEach(function(sub) { %>
+                                <div class="flex items-center justify-between p-3 rounded-lg bg-surface-container-low border border-outline-variant/10 hover:border-error/30 transition-colors">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded-full bg-secondary-container/30 text-secondary-container flex items-center justify-center flex-shrink-0">
+                                            <span class="material-symbols-outlined text-[16px]">autorenew</span>
+                                        </div>
+                                        <div class="truncate">
+                                            <p class="font-bold text-sm text-on-surface truncate"><%= sub._id.description %></p>
+                                            <p class="text-[10px] text-on-surface-variant">Billed <%= sub.count %> times recently</p>
+                                        </div>
+                                    </div>
+                                    <p class="font-bold text-sm text-secondary shrink-0">-$<%= parseFloat(sub._id.amount).toFixed(2) %><span class="text-[10px] font-normal text-on-surface-variant">/mo</span></p>
+                                </div>
+                            <% }) %>
+                        <% } else { %>
+                            <div class="flex flex-col items-center justify-center py-8 text-on-surface-variant opacity-70">
+                                <span class="material-symbols-outlined text-4xl mb-2">check_circle</span>
+                                <p class="text-sm text-center">No recurring subscriptions detected.<br>Your wealth is secure.</p>
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+
+                <!-- Phase 12: "What-If" Wealth Time Machine -->
+                <div class="glass-card rounded-xl p-6 flex flex-col hover-lift" id="wealth-time-machine">
+                    <div class="flex justify-between items-center mb-6">
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-primary text-[24px]">history</span>
+                            <h3 class="font-title-md text-title-md text-on-background">Wealth Time Machine</h3>
+                        </div>
+                        <span class="text-[10px] bg-primary/10 text-primary px-2 py-1 rounded font-bold uppercase tracking-wider">Compound Interest</span>
+                    </div>
+                    
+                    <div class="flex flex-col gap-4 flex-grow">
+                        <div>
+                            <label class="flex justify-between text-xs text-on-surface-variant mb-2">
+                                <span>Reduce my monthly expenses by</span>
+                                <span id="cut-amount-label" class="font-bold text-primary">20%</span>
+                            </label>
+                            <input type="range" id="expense-cut-slider" min="0" max="50" value="20" class="w-full accent-primary h-2 bg-surface-container rounded-lg appearance-none cursor-pointer">
+                        </div>
+                        
+                        <div class="flex justify-between gap-4 mt-2">
+                            <div class="bg-surface-container-low p-4 rounded-xl flex-1 border border-outline-variant/10 text-center">
+                                <p class="text-[10px] text-on-surface-variant uppercase tracking-wider mb-1">Extra Monthly Savings</p>
+                                <p class="font-bold text-lg text-green-500" id="extra-savings-val">+$0</p>
+                            </div>
+                            <div class="bg-primary/5 p-4 rounded-xl flex-1 border border-primary/20 text-center">
+                                <p class="text-[10px] text-on-surface-variant uppercase tracking-wider mb-1">10-Year Wealth (8% ROI)</p>
+                                <p class="font-bold text-xl text-primary" id="projected-wealth-val">$0</p>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4 flex-grow relative min-h-[120px]">
+                            <!-- We will render a Chart.js canvas here for Phase 12 -->
+                            <canvas id="wealthChart"></canvas>
+                        </div>
+                    </div>
+                </div>
             </div>
             
             <!-- Real-Time SSE Fraud Alerts Toast Container -->
@@ -547,6 +635,102 @@
         }
         
         loadAIAdvisor();
+    });
+
+    // --- Phase 12: Wealth Time Machine ---
+    document.addEventListener('DOMContentLoaded', () => {
+        const slider = document.getElementById('expense-cut-slider');
+        const cutLabel = document.getElementById('cut-amount-label');
+        const savingsVal = document.getElementById('extra-savings-val');
+        const wealthVal = document.getElementById('projected-wealth-val');
+        const chartCanvas = document.getElementById('wealthChart');
+        if (!slider || !chartCanvas) return;
+        
+        const ctx = chartCanvas.getContext('2d');
+        let wealthChart;
+        const currentMonthlyExpenses = <%= (typeof monthlyExpenseTotal !== 'undefined') ? monthlyExpenseTotal : 0 %>;
+        
+        function updateTimeMachine() {
+            const cutPercent = parseInt(slider.value, 10);
+            cutLabel.textContent = cutPercent + '%';
+            
+            const extraMonthlySavings = currentMonthlyExpenses * (cutPercent / 100);
+            savingsVal.textContent = '+$' + Math.round(extraMonthlySavings).toLocaleString();
+            
+            // Compound Interest Formula for 10 years at 8% (annual rate, monthly compounding)
+            const r = 0.08 / 12;
+            const n = 12 * 10;
+            // Future Value of a Series formula
+            const projectedWealth = extraMonthlySavings > 0 ? extraMonthlySavings * ( (Math.pow(1 + r, n) - 1) / r ) : 0;
+            wealthVal.textContent = '$' + Math.round(projectedWealth).toLocaleString();
+            
+            // Generate Data points for the chart (0 to 10 years)
+            const labels = [];
+            const dataPoints = [];
+            for (let year = 0; year <= 10; year++) {
+                labels.push('Year ' + year);
+                if (year === 0) {
+                    dataPoints.push(0);
+                } else {
+                    const months = year * 12;
+                    const val = extraMonthlySavings > 0 ? extraMonthlySavings * ( (Math.pow(1 + r, months) - 1) / r ) : 0;
+                    dataPoints.push(Math.round(val));
+                }
+            }
+            
+            if (wealthChart) {
+                wealthChart.data.labels = labels;
+                wealthChart.data.datasets[0].data = dataPoints;
+                wealthChart.update();
+            } else {
+                // Initialize chart
+                wealthChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Projected Wealth',
+                            data: dataPoints,
+                            borderColor: '#FF6B35', 
+                            backgroundColor: 'rgba(255, 107, 53, 0.2)',
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 0,
+                            pointHoverRadius: 4,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return '$' + context.parsed.y.toLocaleString();
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: { display: false },
+                            y: { display: false, beginAtZero: true }
+                        }
+                    }
+                });
+            }
+        }
+        
+        slider.addEventListener('input', updateTimeMachine);
+        
+        if (typeof Chart !== 'undefined') {
+            updateTimeMachine();
+        } else {
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/chart.js';
+            script.onload = updateTimeMachine;
+            document.head.appendChild(script);
+        }
     });
 
 </script>

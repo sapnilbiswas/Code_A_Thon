@@ -3,6 +3,7 @@ const router = express.Router();
 const User = require('../models/User');
 const Transaction = require('../models/Transaction');
 const Budget = require('../models/Budget');
+const SavingsGoal = require('../models/SavingsGoal');
 const { isLoggedIn } = require('../middleware/auth');
 
 // Protect all dashboard and budget routes
@@ -160,19 +161,37 @@ router.get('/dashboard', async (req, res) => {
             spentMap[t.category] = (spentMap[t.category] || 0) + t.amount;
         });
 
-        // Points subtraction for overall health score
+        // Fetch Savings Goals to factor into health score
+        const savingsGoals = await SavingsGoal.find({ user: userId });
+
+        // Phase 10: Gamified Financial Health Score (0-1000)
         let penalty = 0;
+        let bonus = 0;
+        
         budgets.forEach(b => {
             const spent = spentMap[b.category] || 0;
             // Scale budget limit to the duration of the range
             const scaledLimit = b.limitAmount * (durationDays / 30);
             if (spent > scaledLimit) {
-                penalty += 15; // 15 points deduction for over-budget category
+                penalty += 100; // 100 points deduction for over-budget category
+            } else if (scaledLimit > 0 && spent < scaledLimit * 0.8) {
+                bonus += 50; // Bonus for being well under budget
             }
         });
-        penalty += flaggedCount * 10; // 10 points deduction per flagged transaction
+        
+        penalty += flaggedCount * 150; // Heavy penalty for flagged transactions
 
-        const overallHealthScore = Math.max(0, Math.min(100, 100 - penalty));
+        // Factor in savings goals
+        savingsGoals.forEach(g => {
+            if (g.currentAmount >= g.targetAmount) {
+                bonus += 100; // Goal reached
+            } else if (g.currentAmount > 0) {
+                bonus += 50; // Making progress
+            }
+        });
+
+        // Base score of 700 (like a good credit score)
+        const overallHealthScore = Math.max(0, Math.min(1000, 700 - penalty + bonus));
 
         // Update health score in User model
         await User.findByIdAndUpdate(userId, { overallHealthScore });
@@ -321,6 +340,30 @@ router.get('/dashboard', async (req, res) => {
             if (riskVectors.otherThreatsPercent < 0) riskVectors.otherThreatsPercent = 0;
         }
 
+        // Phase 11: Zombie Subscription Detector
+        const zombieSubscriptions = await Transaction.aggregate([
+            { 
+                $match: { 
+                    user: userId, 
+                    type: 'expense',
+                    description: { $not: /atm|withdrawal|transfer|neft|imps|sent to|paid to/i }
+                } 
+            },
+            { $group: { 
+                _id: { description: "$description", amount: "$amount" }, 
+                count: { $sum: 1 },
+                lastDate: { $max: "$date" }
+            }},
+            { $match: { count: { $gt: 1 } } },
+            { $sort: { "_id.amount": -1 } },
+            { $limit: 4 }
+        ]);
+        
+        let totalAnnualSubscriptionCost = 0;
+        zombieSubscriptions.forEach(sub => {
+            totalAnnualSubscriptionCost += (sub._id.amount * 12);
+        });
+
         res.render('dashboard', { 
             totals, 
             overallHealthScore, 
@@ -338,7 +381,9 @@ router.get('/dashboard', async (req, res) => {
             expensesLabel,
             chartLabels,
             yAxisLabels,
-            rangeType
+            rangeType,
+            zombieSubscriptions,
+            totalAnnualSubscriptionCost
         });
     } catch (e) {
         console.error("Error rendering dashboard:", e);
