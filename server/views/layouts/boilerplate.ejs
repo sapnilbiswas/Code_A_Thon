@@ -5,6 +5,17 @@
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
     <title>FraudGuard - Fintech Dashboard</title>
     
+    <script>
+        // Prevent flash of wrong theme (FOUC)
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+            document.documentElement.classList.remove('light');
+        } else {
+            document.documentElement.classList.add('light');
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
@@ -107,10 +118,51 @@
     </script>
     <link href="/css/style.css" rel="stylesheet"/>
 </head>
-<body class="bg-background min-h-screen flex items-center justify-center relative overflow-hidden font-body-lg text-on-surface">
+<body class="bg-background min-h-screen flex items-center justify-center relative overflow-hidden font-body-lg text-on-surface transition-colors duration-300">
     <!-- Flash Messages (if any) -->
     <%- include('../partials/flash') %>
     
     <%- body %>
+
+    <script>
+        function toggleTheme() {
+            const html = document.documentElement;
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                html.classList.add('light');
+                localStorage.setItem('theme', 'light');
+            } else {
+                html.classList.remove('light');
+                html.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+            updateThemeToggleUI();
+        }
+
+        function updateThemeToggleUI() {
+            const isDark = document.documentElement.classList.contains('dark');
+            // Update all toggle pill UIs on the page
+            document.querySelectorAll('.theme-toggle-pill').forEach(pill => {
+                const knob = pill.querySelector('.theme-knob');
+                const sunIcon = pill.querySelector('.sun-icon');
+                const moonIcon = pill.querySelector('.moon-icon');
+                if (isDark) {
+                    knob.style.transform = 'translateX(24px)';
+                    pill.style.background = 'rgba(255, 107, 53, 0.25)';
+                    if (sunIcon) sunIcon.style.opacity = '0.4';
+                    if (moonIcon) moonIcon.style.opacity = '1';
+                } else {
+                    knob.style.transform = 'translateX(0px)';
+                    pill.style.background = 'rgba(141, 113, 104, 0.15)';
+                    if (sunIcon) sunIcon.style.opacity = '1';
+                    if (moonIcon) moonIcon.style.opacity = '0.4';
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateThemeToggleUI();
+        });
+    </script>
 </body>
 </html>

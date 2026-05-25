@@ -12,70 +12,49 @@
    GLASSMORPHISM CARDS
    ============================================================ */
 .glass-card {
-    background: rgba(255, 255, 255, 0.6);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    box-shadow: 0 10px 40px -10px rgba(184, 134, 11, 0.08);
+    position: relative;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-left: 4px solid rgba(255, 107, 53, 0.6); /* Premium left-side color highlight */
+    box-shadow: 
+        0 4px 6px -1px rgba(0, 0, 0, 0.04),
+        0 10px 30px -10px rgba(184, 134, 11, 0.05);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Ensure card content sits above the premium side-spray glow */
+.glass-card > * {
+    position: relative;
+    z-index: 1;
+}
+
+/* Keep pointer-events-none elements in the background if they exist */
+.glass-card > .pointer-events-none {
+    z-index: 0 !important;
+}
+
+
+/* ============================================================
+   HOVER LIFT MICRO-INTERACTION
+   ============================================================ */
+.hover-lift {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.hover-lift:hover {
+    transform: translateY(-4px) scale(1.01);
+    box-shadow: 
+        0 20px 40px -15px rgba(184, 134, 11, 0.1);
+    border-color: rgba(255, 107, 53, 0.35);
 }
 
 /* ============================================================
-   AMBIENT BACKGROUND ORBS
+   AMBIENT BACKGROUND ORBS (HIDDEN GLOBALLY ACCORDING TO USER PREFERENCE)
    ============================================================ */
-.ambient-orb {
-    position: fixed;
-    border-radius: 50%;
-    filter: blur(100px);
-    z-index: -1;
-    opacity: 0.6;
-    pointer-events: none;
-    animation: float 20s infinite alternate;
-}
-
-/* Named orb variants used across pages */
-.orb-1 {
-    width: 400px;
-    height: 400px;
-    background: #FFEDEA;
-    top: -100px;
-    right: -100px;
-}
-
-.orb-2 {
-    width: 500px;
-    height: 500px;
-    background: #FFF8E7;
-    bottom: -200px;
-    left: -100px;
-}
-
-/* Login / Register page orbs */
-.bg-orb {
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(100px);
-    opacity: 0.6;
-    z-index: 0;
-    animation: float 20s ease-in-out infinite alternate;
-}
-
-/* Budget page orb variant */
-.orb-bg {
-    position: fixed;
-    width: 600px;
-    height: 600px;
-    border-radius: 50%;
-    filter: blur(100px);
-    z-index: -1;
-    opacity: 0.6;
-    pointer-events: none;
-}
-
-@keyframes float {
-    0%   { transform: translate(0, 0) scale(1); }
-    33%  { transform: translate(30px, -50px) scale(1.1); }
-    66%  { transform: translate(-20px, 20px) scale(0.9); }
-    100% { transform: translate(0, 0) scale(1); }
+.ambient-orb, .bg-orb, .orb-bg {
+    display: none !important;
 }
 
 /* ============================================================
@@ -103,33 +82,37 @@
    PRIMARY BUTTON
    ============================================================ */
 .btn-primary {
-    background: linear-gradient(180deg, #ff8555 0%, #ff6b35 100%);
-    box-shadow: 0 4px 14px 0 rgba(255, 107, 53, 0.39);
-    transition: all 0.2s ease;
+    background: linear-gradient(185deg, #ff8555 0%, #ff6b35 100%);
+    box-shadow: 0 4px 14px 0 rgba(255, 107, 53, 0.3);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .btn-primary:hover {
-    box-shadow: 0 6px 20px 0 rgba(255, 107, 53, 0.45);
+    box-shadow: 0 8px 24px 0 rgba(255, 107, 53, 0.45);
+    transform: translateY(-1px);
 }
 
 .btn-primary:active {
     transform: translateY(1px);
-    box-shadow: 0 2px 8px 0 rgba(255, 107, 53, 0.39);
+    box-shadow: 0 2px 8px 0 rgba(255, 107, 53, 0.3);
 }
 
 /* ============================================================
    PREMIUM INPUT FIELDS (Transactions / Budgets)
    ============================================================ */
 .input-premium {
-    background-color: #FAF7F2;
-    border: 1px solid rgba(141, 113, 104, 0.2);
-    transition: all 0.2s ease;
+    background-color: rgba(250, 247, 242, 0.85);
+    border: 1px solid rgba(141, 113, 104, 0.25);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02);
 }
 
 .input-premium:focus {
     border-color: #FF4E50;
-    box-shadow: 0 0 0 2px rgba(255, 78, 80, 0.1);
+    box-shadow: 0 0 0 3px rgba(255, 78, 80, 0.15), inset 0 1px 1px rgba(0, 0, 0, 0.01);
     outline: none;
+    background-color: #ffffff;
 }
 
 /* ============================================================
@@ -186,7 +169,261 @@ tr:hover {
    SIDEBAR ACTIVE LINK HIGHLIGHT
    ============================================================ */
 nav a.active-nav {
-    background: rgba(255, 107, 53, 0.15);
+    background: linear-gradient(90deg, rgba(255, 107, 53, 0.15) 0%, rgba(255, 107, 53, 0.05) 100%);
     color: #5f1900;
     font-weight: 700;
+    border-left: 3px solid #ff6b35;
+}
+
+/* ============================================================
+   DOT GRID BACKGROUND (dark mode only)
+   ============================================================ */
+.dark body {
+    background-color: #121314 !important;
+    background-image: radial-gradient(rgba(255, 181, 157, 0.06) 1px, transparent 1px) !important;
+    background-size: 24px 24px !important;
+}
+
+/* ============================================================
+   DARK THEME — CORE OVERRIDES
+   ============================================================ */
+
+/* Base text colors */
+.dark, .dark body {
+    color: #e4e2e1 !important;
+}
+
+.dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6,
+.dark .text-on-background, .dark .text-on-surface {
+    color: #f0eded !important;
+}
+
+.dark .text-on-surface-variant {
+    color: #a89892 !important;
+}
+
+/* ============================================================
+   DARK — GLASSMORPHIC CARDS
+   ============================================================ */
+.dark .glass-card {
+    background: rgba(18, 19, 21, 0.75) !important;
+    backdrop-filter: blur(24px) !important;
+    -webkit-backdrop-filter: blur(24px) !important;
+    border: 1px solid rgba(255, 181, 157, 0.05) !important;
+    border-left: 4px solid rgba(255, 107, 53, 0.8) !important; /* Premium left-side color highlight */
+    box-shadow: 
+        0 10px 40px -10px rgba(0, 0, 0, 0.5),
+        0 0 0 1px rgba(255, 181, 157, 0.02) !important;
+}
+
+.dark .hover-lift:hover {
+    transform: translateY(-4px) scale(1.01) !important;
+    box-shadow: 
+        0 24px 48px -12px rgba(0, 0, 0, 0.6),
+        0 0 20px rgba(255, 107, 53, 0.1) !important;
+    border-color: rgba(255, 107, 53, 0.25) !important;
+}
+
+/* ============================================================
+   DARK — SIDEBAR
+   ============================================================ */
+.dark nav {
+    background-color: #161718 !important;
+    border-color: rgba(255, 181, 157, 0.06) !important;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.4) !important;
+}
+
+.dark nav a {
+    color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.dark nav a:hover {
+    background-color: rgba(255, 107, 53, 0.08) !important;
+    color: #ffffff !important;
+}
+
+.dark nav a.bg-primary-container\/20,
+.dark nav a.active-nav {
+    background: linear-gradient(90deg, rgba(255, 107, 53, 0.2) 0%, rgba(255, 107, 53, 0.05) 100%) !important;
+    color: #ffb59d !important;
+    border-left: 3px solid #ff6b35 !important;
+}
+
+/* ============================================================
+   DARK — INPUT FIELDS
+   ============================================================ */
+.dark .input-premium {
+    background-color: #1a1b1c !important;
+    border-color: rgba(255, 181, 157, 0.1) !important;
+    color: #f0eded !important;
+}
+
+.dark .input-premium::placeholder {
+    color: rgba(255, 255, 255, 0.25) !important;
+}
+
+.dark .input-premium:focus {
+    border-color: #ff6b35 !important;
+    box-shadow: 0 0 0 2px rgba(255, 107, 53, 0.15) !important;
+}
+
+/* ============================================================
+   DARK — TABLE STYLES
+   ============================================================ */
+.dark tr:hover {
+    background-color: rgba(255, 255, 255, 0.03) !important;
+}
+
+.dark th {
+    color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.dark td {
+    color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.dark thead tr {
+    background-color: rgba(255, 255, 255, 0.02) !important;
+    border-bottom-color: rgba(255, 181, 157, 0.08) !important;
+}
+
+.dark tbody tr {
+    border-bottom-color: rgba(255, 255, 255, 0.04) !important;
+}
+
+/* ============================================================
+   DARK — SURFACE CONTAINERS
+   ============================================================ */
+.dark .bg-surface-container-low {
+    background-color: #161718 !important;
+}
+
+.dark .bg-surface-container {
+    background-color: rgba(255, 255, 255, 0.04) !important;
+}
+
+.dark .bg-surface-container-high {
+    background-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+.dark .bg-surface-container-high\/60 {
+    background-color: rgba(255, 255, 255, 0.06) !important;
+    color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.dark .bg-surface-container-lowest\/50 {
+    background-color: rgba(255, 255, 255, 0.02) !important;
+}
+
+.dark .border-outline-variant\/30 {
+    border-color: rgba(255, 181, 157, 0.08) !important;
+}
+
+.dark .border-outline-variant\/50 {
+    border-color: rgba(255, 181, 157, 0.1) !important;
+}
+
+/* ============================================================
+   DARK — MOBILE HEADER & BOTTOM NAV
+   ============================================================ */
+.dark header {
+    background-color: rgba(18, 19, 20, 0.9) !important;
+    border-bottom-color: rgba(255, 181, 157, 0.06) !important;
+    backdrop-filter: blur(20px) !important;
+}
+
+.dark .md\:hidden {
+    background-color: rgba(18, 19, 20, 0.95) !important;
+    border-top-color: rgba(255, 181, 157, 0.06) !important;
+    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.4) !important;
+}
+
+.dark .md\:hidden a {
+    color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.dark .md\:hidden a.text-primary {
+    color: #ffb59d !important;
+}
+
+.dark .md\:hidden a.text-primary div {
+
+   ============================================================ */
+.dark .btn-primary {
+    background: linear-gradient(180deg, #ff8555 0%, #ab3500 100%) !important;
+    box-shadow: 0 4px 14px 0 rgba(171, 53, 0, 0.5) !important;
+}
+
+/* ============================================================
+   DARK — BAR CHART GRID
+   ============================================================ */
+.dark .bar-chart-bg {
+    background: repeating-linear-gradient(
+        to top,
+        transparent,
+        transparent 39px,
+        rgba(255, 255, 255, 0.04) 39px,
+        rgba(255, 255, 255, 0.04) 40px
+    ) !important;
+}
+
+/* ============================================================
+   DARK — STATUS / ERROR COLORS
+   ============================================================ */
+.dark .text-secondary {
+    color: #ff8e95 !important;
+}
+
+.dark .text-error {
+    color: #ff8e95 !important;
+}
+
+.dark .border-l-error {
+    border-left-color: #da3339 !important;
+}
+
+.dark .bg-error-container\/5 {
+    background-color: rgba(218, 51, 57, 0.06) !important;
+}
+
+.dark .bg-error-container\/10 {
+    background-color: rgba(218, 51, 57, 0.1) !important;
+}
+
+/* ============================================================
+   DARK — THEME TOGGLE KNOB
+   ============================================================ */
+.dark .theme-knob {
+    background: #ff6b35 !important;
+}
+
+/* ============================================================
+   DARK — DROPDOWN MENU ITEMS
+   ============================================================ */
+.dark #dropdown-menu a {
+    color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.dark #dropdown-menu a:hover {
+    background-color: rgba(255, 107, 53, 0.1) !important;
+}
+
+/* ============================================================
+   DARK — SCROLLBAR
+   ============================================================ */
+.dark ::-webkit-scrollbar {
+    width: 6px;
+}
+
+.dark ::-webkit-scrollbar-track {
+    background: #121314;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+    background: rgba(255, 181, 157, 0.15);
+    border-radius: 3px;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 181, 157, 0.25);
 }

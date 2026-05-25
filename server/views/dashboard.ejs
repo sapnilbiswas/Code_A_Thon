@@ -8,82 +8,148 @@
     <main class="flex-1 ml-0 md:ml-64 relative overflow-y-auto w-full">
         <div class="px-margin-mobile md:px-container-padding py-24 md:py-8 max-w-[1440px] mx-auto">
             <!-- Page Header -->
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-section-gap gap-4">
+            <div class="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-section-gap gap-6">
                 <div>
-                    <h2 class="font-headline-lg text-headline-lg text-on-background">Overview</h2>
-                    <p class="text-on-surface-variant mt-1">Welcome back, <%= (typeof currentUser !== 'undefined' && currentUser.firstName) ? currentUser.firstName : 'User' %>! Real-time security insights.</p>
+                    <h2 class="font-headline-lg text-headline-lg text-on-background">System Overview</h2>
+                    <p class="text-on-surface-variant mt-1 flex items-center gap-2">
+                        <span class="inline-block w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span>
+                        <span class="font-medium text-amber-500">Live monitoring active.</span>
+                        <span>System Secure.</span>
+                    </p>
                 </div>
-                <div class="glass-card rounded-lg flex items-center px-4 py-2 cursor-pointer hover:bg-white/80 transition-colors shadow-[0_4px_12px_rgba(184,134,11,0.08)]">
-                    <span class="material-symbols-outlined text-tertiary mr-2 text-[20px]">calendar_today</span>
-                    <span class="font-label-md text-label-md text-on-surface mr-4">Last 30 Days</span>
-                    <span class="material-symbols-outlined text-on-surface-variant text-[20px]">expand_more</span>
+                <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full xl:w-auto">
+                    <!-- Controls Container -->
+                    <div class="flex items-center gap-3">
+                        <!-- Theme Toggle Pill -->
+                        <button onclick="toggleTheme()" class="theme-toggle-pill relative flex items-center w-[56px] h-[28px] rounded-full cursor-pointer transition-all duration-300" style="background: rgba(141, 113, 104, 0.15);" title="Toggle Dark/Light Mode" type="button">
+                            <span class="sun-icon absolute left-[6px] material-symbols-outlined text-[14px] text-amber-500 transition-opacity duration-300" style="font-variation-settings: 'FILL' 1;">light_mode</span>
+                            <span class="moon-icon absolute right-[6px] material-symbols-outlined text-[14px] text-orange-300 transition-opacity duration-300" style="font-variation-settings: 'FILL' 1;">dark_mode</span>
+                            <span class="theme-knob absolute left-[3px] w-[22px] h-[22px] rounded-full bg-white shadow-md transition-transform duration-300"></span>
+                        </button>
+
+                        <!-- Date Range Dropdown -->
+                        <div class="relative inline-block text-left" id="date-range-dropdown">
+                            <div class="glass-card rounded-lg flex items-center px-4 py-2 cursor-pointer hover:bg-white/80 transition-colors shadow-[0_4px_12px_rgba(184,134,11,0.08)]" id="dropdown-btn">
+                                <span class="material-symbols-outlined text-tertiary mr-2 text-[20px]">calendar_today</span>
+                                <span class="font-label-md text-label-md text-on-surface mr-4" id="selected-range-label"><%= (typeof selectedRangeLabel !== 'undefined') ? selectedRangeLabel : 'Last 30 Days' %></span>
+                                <span class="material-symbols-outlined text-on-surface-variant text-[20px]">expand_more</span>
+                            </div>
+                            <!-- Dropdown Menu -->
+                            <div class="hidden absolute right-0 mt-2 w-48 rounded-xl glass-card shadow-lg z-50 border border-outline-variant/30 py-1" id="dropdown-menu">
+                                <a href="?range=today" class="block px-4 py-2.5 text-sm text-on-surface hover:bg-primary-container/10 transition-colors <%= (typeof rangeType !== 'undefined' && rangeType === 'today') ? 'bg-primary-container/20 font-bold' : '' %>">Today</a>
+                                <a href="?range=yesterday" class="block px-4 py-2.5 text-sm text-on-surface hover:bg-primary-container/10 transition-colors <%= (typeof rangeType !== 'undefined' && rangeType === 'yesterday') ? 'bg-primary-container/20 font-bold' : '' %>">Yesterday</a>
+                                <a href="?range=7days" class="block px-4 py-2.5 text-sm text-on-surface hover:bg-primary-container/10 transition-colors <%= (typeof rangeType !== 'undefined' && rangeType === '7days') ? 'bg-primary-container/20 font-bold' : '' %>">Last 7 Days</a>
+                                <a href="?range=30days" class="block px-4 py-2.5 text-sm text-on-surface hover:bg-primary-container/10 transition-colors <%= (typeof rangeType !== 'undefined' && rangeType === '30days' || typeof rangeType === 'undefined') ? 'bg-primary-container/20 font-bold' : '' %>">Last 30 Days</a>
+                                <a href="?range=prevYear" class="block px-4 py-2.5 text-sm text-on-surface hover:bg-primary-container/10 transition-colors <%= (typeof rangeType !== 'undefined' && rangeType === 'prevYear') ? 'bg-primary-container/20 font-bold' : '' %>">Previous Year</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Anomaly Detected Alert Box (exactly matching Image 3) -->
+                    <div class="glass-card rounded-xl p-4 flex items-start gap-3 border border-red-500/20 max-w-sm hover:scale-[1.01] transition-transform duration-300 shadow-[0_8px_32px_rgba(218,51,57,0.06)] relative overflow-hidden group grow sm:grow-0">
+                        <div class="absolute inset-0 bg-gradient-to-r from-red-500/5 to-transparent pointer-events-none"></div>
+                        <div class="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center text-red-500 shrink-0">
+                            <span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">warning</span>
+                        </div>
+                        <div class="flex-grow">
+                            <div class="flex justify-between items-center mb-0.5">
+                                <h4 class="font-bold text-xs uppercase tracking-wider text-red-400">Anomaly Detected</h4>
+                                <button onclick="this.closest('.glass-card').remove()" class="text-on-surface-variant hover:text-white transition-colors">
+                                    <span class="material-symbols-outlined text-xs">close</span>
+                                </button>
+                            </div>
+                            <p class="text-[11px] text-on-surface-variant leading-normal">High-velocity transfers identified from IP range 192.168.x.x.</p>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <!-- KPI Cards -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter mb-section-gap">
                 <!-- Card 1: Total Processed Volume -->
-                <div class="glass-card rounded-xl p-6 tilt-card group cursor-default" onmouseleave="resetTilt(this)" onmousemove="tilt(event, this)">
+                <div class="glass-card rounded-xl p-6 tilt-card hover-lift group cursor-default" onmouseleave="resetTilt(this)" onmousemove="tilt(event, this)">
                     <div class="flex justify-between items-start mb-4">
-                        <div class="w-10 h-10 rounded-full bg-primary-container/20 flex items-center justify-center text-primary-container">
-                            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">account_balance</span>
+                        <div class="w-10 h-10 rounded-xl bg-primary-container/20 flex items-center justify-center text-primary-container shadow-[0_0_12px_rgba(255,107,53,0.1)]">
+                            <span class="material-symbols-outlined text-[22px]" style="font-variation-settings: 'FILL' 1;">account_balance</span>
                         </div>
-                        <span class="bg-surface-container px-2 py-1 rounded text-xs font-semibold text-secondary flex items-center gap-1">
+                        <span class="bg-green-500/10 border border-green-500/20 px-2.5 py-1 rounded-full text-xs font-semibold text-green-500 flex items-center gap-1">
                             <span class="material-symbols-outlined text-[14px]">trending_up</span>
                             +12.5%
                         </span>
                     </div>
-                    <p class="text-on-surface-variant text-sm font-medium mb-1">Total Processed Volume</p>
-                    <h3 class="font-display-lg text-display-lg text-on-background">
-                        <%= (typeof totals !== 'undefined' && totals.processedVolume) ? totals.processedVolume : '$12.4M' %>
+                    <p class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-2">Total Volume</p>
+                    <% 
+                        let volumeVal = (typeof totals !== 'undefined' && totals.processedVolume) ? totals.processedVolume : '$12.4M';
+                        let hasVolumeDollar = volumeVal.includes('$');
+                        let cleanVolumeVal = volumeVal.replace('$', '');
+                    %>
+                    <h3 class="text-xl sm:text-2xl md:text-3xl lg:text-lg xl:text-xl 2xl:text-2xl text-on-background font-bold tracking-tight flex items-baseline">
+                        <% if (hasVolumeDollar) { %><span class="text-primary font-bold mr-1 text-base sm:text-lg md:text-xl lg:text-sm xl:text-base 2xl:text-lg">$</span><% } %>
+                        <%= cleanVolumeVal %>
                     </h3>
                 </div>
 
                 <!-- Card 2: Flagged Transactions -->
-                <div class="glass-card rounded-xl p-6 tilt-card group cursor-default" onmouseleave="resetTilt(this)" onmousemove="tilt(event, this)">
+                <div class="glass-card rounded-xl p-6 tilt-card hover-lift group cursor-default" onmouseleave="resetTilt(this)" onmousemove="tilt(event, this)">
                     <div class="flex justify-between items-start mb-4">
-                        <div class="w-10 h-10 rounded-full bg-secondary-container/20 flex items-center justify-center text-secondary-container">
-                            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">warning</span>
+                        <div class="w-10 h-10 rounded-xl bg-secondary-container/20 flex items-center justify-center text-secondary-container shadow-[0_0_12px_rgba(218,51,57,0.1)]">
+                            <span class="material-symbols-outlined text-[22px]" style="font-variation-settings: 'FILL' 1;">warning</span>
                         </div>
-                        <span class="bg-error-container/50 px-2 py-1 rounded text-xs font-semibold text-error flex items-center gap-1">
+                        <span class="bg-red-500/10 border border-red-500/20 px-2.5 py-1 rounded-full text-xs font-semibold text-red-500 flex items-center gap-1">
                             <span class="material-symbols-outlined text-[14px]">trending_up</span>
                             +2.1%
                         </span>
                     </div>
-                    <p class="text-on-surface-variant text-sm font-medium mb-1">Flagged Transactions</p>
-                    <h3 class="font-display-lg text-display-lg text-on-background text-secondary">
+                    <p class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-2">Flagged Anomalies</p>
+                    <h3 class="text-xl sm:text-2xl md:text-3xl lg:text-lg xl:text-xl 2xl:text-2xl text-secondary font-bold tracking-tight flex items-baseline">
                         <%= (typeof totals !== 'undefined' && totals.flaggedCount !== undefined) ? totals.flaggedCount : '243' %>
                     </h3>
                 </div>
 
                 <!-- Card 3: System Health Score -->
-                <div class="glass-card rounded-xl p-6 tilt-card group cursor-default" onmouseleave="resetTilt(this)" onmousemove="tilt(event, this)">
+                <div class="glass-card rounded-xl p-6 tilt-card hover-lift group cursor-default" onmouseleave="resetTilt(this)" onmousemove="tilt(event, this)">
                     <div class="flex justify-between items-start mb-4">
-                        <div class="w-10 h-10 rounded-full bg-tertiary-container/20 flex items-center justify-center text-tertiary-container">
-                            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">health_and_safety</span>
+                        <div class="w-10 h-10 rounded-xl bg-tertiary-container/20 flex items-center justify-center text-tertiary-container shadow-[0_0_12px_rgba(204,142,0,0.1)]">
+                            <span class="material-symbols-outlined text-[22px]" style="font-variation-settings: 'FILL' 1;">health_and_safety</span>
                         </div>
-                        <span class="bg-surface-container px-2 py-1 rounded text-xs font-semibold text-on-surface-variant">Stable</span>
+                        <span class="bg-green-500/10 border border-green-500/20 px-2.5 py-1 rounded-full text-xs font-semibold text-green-500 flex items-center gap-1">Stable</span>
                     </div>
-                    <p class="text-on-surface-variant text-sm font-medium mb-1">System Health Score</p>
-                    <h3 class="font-display-lg text-display-lg text-on-background">
-                        <%= (typeof currentUser !== 'undefined' && currentUser.overallHealthScore) ? currentUser.overallHealthScore : '98.2' %><span class="text-xl text-outline font-normal">/100</span>
-                    </h3>
+                    <p class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-2">System Health</p>
+                    <%
+                        let healthScore = (typeof currentUser !== 'undefined' && currentUser.overallHealthScore) ? currentUser.overallHealthScore : 98.2;
+                    %>
+                    <div class="flex items-center justify-between w-full mt-2 gap-4">
+                        <h3 class="text-xl sm:text-2xl md:text-3xl lg:text-lg xl:text-xl 2xl:text-2xl text-on-background font-bold tracking-tight flex items-baseline">
+                            <%= healthScore %><span class="text-xs text-on-surface-variant font-normal ml-0.5">%</span>
+                        </h3>
+                        <div class="flex flex-col items-end flex-grow max-w-[90px]">
+                            <div class="w-full bg-surface-container-high dark:bg-surface-container-lowest/20 rounded-full h-2 overflow-hidden border border-outline-variant/10">
+                                <div class="bg-gradient-to-r from-green-500 to-emerald-400 h-2 rounded-full transition-all duration-1000 animate-pulse" style="width: <%= healthScore %>%"></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Card 4: Prevented Losses -->
-                <div class="glass-card rounded-xl p-6 tilt-card group cursor-default" onmouseleave="resetTilt(this)" onmousemove="tilt(event, this)">
+                <div class="glass-card rounded-xl p-6 tilt-card hover-lift group cursor-default" onmouseleave="resetTilt(this)" onmousemove="tilt(event, this)">
                     <div class="flex justify-between items-start mb-4">
-                        <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">shield</span>
+                        <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shadow-[0_0_12px_rgba(171,53,0,0.1)]">
+                            <span class="material-symbols-outlined text-[22px]" style="font-variation-settings: 'FILL' 1;">shield</span>
                         </div>
-                        <span class="bg-surface-container px-2 py-1 rounded text-xs font-semibold text-tertiary flex items-center gap-1">
+                        <span class="bg-green-500/10 border border-green-500/20 px-2.5 py-1 rounded-full text-xs font-semibold text-green-500 flex items-center gap-1">
                             <span class="material-symbols-outlined text-[14px]">trending_down</span>
                             -0.5%
                         </span>
                     </div>
-                    <p class="text-on-surface-variant text-sm font-medium mb-1">Prevented Losses</p>
-                    <h3 class="font-display-lg text-display-lg text-on-background">
-                        <%= (typeof totals !== 'undefined' && totals.preventedLosses) ? totals.preventedLosses : '$450K' %>
+                    <p class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-2">Prevented Losses</p>
+                    <% 
+                        let lossesVal = (typeof totals !== 'undefined' && totals.preventedLosses) ? totals.preventedLosses : '$450K';
+                        let hasLossesDollar = lossesVal.includes('$');
+                        let cleanLossesVal = lossesVal.replace('$', '');
+                    %>
+                    <h3 class="text-xl sm:text-2xl md:text-3xl lg:text-lg xl:text-xl 2xl:text-2xl text-on-background font-bold tracking-tight flex items-baseline">
+                        <% if (hasLossesDollar) { %><span class="text-primary font-bold mr-1 text-base sm:text-lg md:text-xl lg:text-sm xl:text-base 2xl:text-lg">$</span><% } %>
+                        <%= cleanLossesVal %>
                     </h3>
                 </div>
             </div>
@@ -96,7 +162,7 @@
                 const mRate = (typeof savingsRate !== 'undefined') ? savingsRate : 0;
                 const savingsPositive = mSavings >= 0;
             %>
-            <div class="glass-card rounded-xl p-6 mb-section-gap relative overflow-hidden">
+            <div class="glass-card rounded-xl p-6 mb-section-gap relative overflow-hidden hover-lift">
                 <div class="absolute inset-0 bg-gradient-to-r <%= savingsPositive ? 'from-green-500/5 via-transparent to-primary/5' : 'from-secondary/5 via-transparent to-error/5' %> pointer-events-none"></div>
                 <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative z-10">
                     <div class="flex items-center gap-4">
@@ -104,7 +170,7 @@
                             <span class="material-symbols-outlined <%= savingsPositive ? 'text-green-500' : 'text-error' %>" style="font-variation-settings: 'FILL' 1;">savings</span>
                         </div>
                         <div>
-                            <p class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-0.5">Monthly Savings</p>
+                            <p class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-0.5"><%= (typeof savingsLabel !== 'undefined') ? savingsLabel : 'Monthly Savings' %></p>
                             <h3 class="font-display-lg text-display-lg <%= savingsPositive ? 'text-green-500' : 'text-error' %>">
                                 <%= savingsPositive ? '' : '-' %>$<%= Math.abs(mSavings).toLocaleString(undefined, { maximumFractionDigits: 0 }) %>
                             </h3>
@@ -112,11 +178,11 @@
                     </div>
                     <div class="flex flex-wrap gap-6 md:gap-12">
                         <div class="text-center">
-                            <p class="font-label-md text-label-md text-on-surface-variant mb-1">Monthly Income</p>
+                            <p class="font-label-md text-label-md text-on-surface-variant mb-1"><%= (typeof incomeLabel !== 'undefined') ? incomeLabel : 'Monthly Income' %></p>
                             <p class="font-headline-lg text-headline-lg text-green-500">+$<%= mIncome.toLocaleString(undefined, { maximumFractionDigits: 0 }) %></p>
                         </div>
                         <div class="text-center">
-                            <p class="font-label-md text-label-md text-on-surface-variant mb-1">Monthly Expenses</p>
+                            <p class="font-label-md text-label-md text-on-surface-variant mb-1"><%= (typeof expensesLabel !== 'undefined') ? expensesLabel : 'Monthly Expenses' %></p>
                             <p class="font-headline-lg text-headline-lg text-secondary">-$<%= mExpense.toLocaleString(undefined, { maximumFractionDigits: 0 }) %></p>
                         </div>
                         <div class="text-center">
@@ -159,7 +225,7 @@
             </div>
 
             <!-- AI Financial Advisor Widget -->
-            <div class="glass-card rounded-xl p-6 mb-section-gap relative overflow-hidden tilt-card" onmouseleave="resetTilt(this)" onmousemove="tilt(event, this)">
+            <div class="glass-card rounded-xl p-6 mb-section-gap relative overflow-hidden tilt-card hover-lift" onmouseleave="resetTilt(this)" onmousemove="tilt(event, this)">
                 <div class="absolute inset-0 bg-gradient-to-r from-primary-container/10 via-transparent to-tertiary-container/10 pointer-events-none"></div>
                 <div class="relative z-10">
                     <div class="flex items-center justify-between mb-4">
@@ -188,7 +254,7 @@
             <!-- Main Grid Layout -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
                 <!-- Volume Chart (Static Representation matching Figma) -->
-                <div class="lg:col-span-2 glass-card rounded-xl p-6 flex flex-col h-[450px]">
+                <div class="lg:col-span-2 glass-card rounded-xl p-6 flex flex-col h-[450px] hover-lift">
                     <div class="flex justify-between items-center mb-6">
                         <h3 class="font-title-md text-title-md text-on-background">Transaction Volume vs Prevented Risk</h3>
                         <button class="text-on-surface-variant hover:text-primary transition-colors">
@@ -199,12 +265,18 @@
                         <div class="absolute inset-0 bar-chart-bg"></div>
                         <!-- Y-Axis Labels -->
                         <div class="absolute left-0 top-0 bottom-0 flex flex-col justify-between text-xs text-on-surface-variant z-10 w-8">
-                            <span>10k</span>
-                            <span>8k</span>
-                            <span>6k</span>
-                            <span>4k</span>
-                            <span>2k</span>
-                            <span>0</span>
+                            <% if (typeof yAxisLabels !== 'undefined' && yAxisLabels) { %>
+                                <% yAxisLabels.forEach(function(label) { %>
+                                    <span><%= label %></span>
+                                <% }) %>
+                            <% } else { %>
+                                <span>10k</span>
+                                <span>8k</span>
+                                <span>6k</span>
+                                <span>4k</span>
+                                <span>2k</span>
+                                <span>0</span>
+                            <% } %>
                         </div>
                         <!-- Bars Container -->
                         <div class="absolute left-12 right-0 top-0 bottom-6 flex justify-around items-end z-10 pl-4">
@@ -233,10 +305,16 @@
                         </div>
                         <!-- X-Axis Labels -->
                         <div class="absolute bottom-0 left-12 right-0 flex justify-around text-xs text-on-surface-variant font-medium pt-2 border-t border-outline-variant/30 font-bold">
-                            <span>Week 1</span>
-                            <span>Week 2</span>
-                            <span>Week 3</span>
-                            <span>Week 4</span>
+                            <% if (typeof chartLabels !== 'undefined' && chartLabels) { %>
+                                <% chartLabels.forEach(function(label) { %>
+                                    <span><%= label %></span>
+                                <% }) %>
+                            <% } else { %>
+                                <span>Week 1</span>
+                                <span>Week 2</span>
+                                <span>Week 3</span>
+                                <span>Week 4</span>
+                            <% } %>
                         </div>
                     </div>
                     <!-- Legend -->
@@ -253,7 +331,7 @@
                 </div>
 
                 <!-- Risk Vectors List -->
-                <div class="glass-card rounded-xl p-6 h-[450px] flex flex-col">
+                <div class="glass-card rounded-xl p-6 h-[450px] flex flex-col hover-lift">
                     <div class="flex justify-between items-center mb-6">
                         <h3 class="font-title-md text-title-md text-on-background">Risk Vectors</h3>
                         <span class="material-symbols-outlined text-on-surface-variant text-[20px]">info</span>
@@ -445,8 +523,26 @@
         }
     }
     
-    // Launch on page load
-    document.addEventListener('DOMContentLoaded', loadAIAdvisor);
+    // Launch on page load & date filter dropdown toggle logic
+    document.addEventListener('DOMContentLoaded', () => {
+        const dropdownBtn = document.getElementById('dropdown-btn');
+        const dropdownMenu = document.getElementById('dropdown-menu');
+
+        if (dropdownBtn && dropdownMenu) {
+            dropdownBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                dropdownMenu.classList.toggle('hidden');
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!dropdownBtn.contains(e.target) && !dropdownMenu.contains(e.target)) {
+                    dropdownMenu.classList.add('hidden');
+                }
+            });
+        }
+        
+        loadAIAdvisor();
+    });
 
 </script>
 <script src="/js/sse.js"></script>

@@ -48,9 +48,19 @@
     <main class="flex-grow ml-0 md:ml-64 pt-24 md:pt-8 pb-24 px-margin-mobile md:px-container-padding max-w-[1440px] mx-auto overflow-y-auto relative">
         
         <!-- Page Header -->
-        <div class="mb-section-gap">
-            <h1 class="font-display-lg text-display-lg text-on-background mb-2">Savings Goals</h1>
-            <p class="font-body-lg text-body-lg text-on-surface-variant">Set aside funds, monitor milestones, and grow your wealth securely.</p>
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-section-gap gap-4">
+            <div>
+                <h1 class="font-display-lg text-display-lg text-on-background mb-2">Savings Goals</h1>
+                <p class="font-body-lg text-body-lg text-on-surface-variant">Set aside funds, monitor milestones, and grow your wealth securely.</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <!-- Theme Toggle Pill -->
+                <button onclick="toggleTheme()" class="theme-toggle-pill relative flex items-center w-[56px] h-[28px] rounded-full cursor-pointer transition-all duration-300" style="background: rgba(141, 113, 104, 0.15);" title="Toggle Dark/Light Mode" type="button">
+                    <span class="sun-icon absolute left-[6px] material-symbols-outlined text-[14px] text-amber-500 transition-opacity duration-300" style="font-variation-settings: 'FILL' 1;">light_mode</span>
+                    <span class="moon-icon absolute right-[6px] material-symbols-outlined text-[14px] text-orange-300 transition-opacity duration-300" style="font-variation-settings: 'FILL' 1;">dark_mode</span>
+                    <span class="theme-knob absolute left-[3px] w-[22px] h-[22px] rounded-full bg-white shadow-md transition-transform duration-300"></span>
+                </button>
+            </div>
         </div>
 
         <!-- Auto-Savings Info Banner -->
@@ -65,7 +75,7 @@
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter w-full">
             <!-- Add Savings Goal Card (Left Column) -->
             <div class="lg:col-span-4 flex flex-col gap-gutter w-full">
-                <div class="glass-card rounded-xl p-container-padding">
+                <div class="glass-card rounded-xl p-container-padding hover-lift">
                     <h2 class="font-title-md text-title-md text-on-surface mb-6 flex items-center gap-2">
                         <span class="material-symbols-outlined text-primary">savings</span>
                         New Savings Goal
@@ -122,7 +132,7 @@
                                 else if (percent >= 75) colorClass = 'bg-orange-400';
                                 else if (percent >= 50) colorClass = 'bg-primary-container';
                             %>
-                            <div class="glass-card rounded-xl p-6 flex flex-col justify-between tilt-card" style="box-shadow: 0 10px 30px rgba(184, 134, 11, 0.05);">
+                            <div class="glass-card rounded-xl p-6 flex flex-col justify-between tilt-card hover-lift" style="box-shadow: 0 10px 30px rgba(184, 134, 11, 0.05);">
                                 <!-- Top Row -->
                                 <div>
                                     <div class="flex justify-between items-start mb-4">

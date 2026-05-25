@@ -79,7 +79,14 @@
                 </div>
                 
                 <!-- Action Controls (Hidden on Print) -->
-                <div class="print:hidden flex gap-3">
+                <div class="print:hidden flex items-center gap-3">
+                    <!-- Theme Toggle Pill -->
+                    <button onclick="toggleTheme()" class="theme-toggle-pill relative flex items-center w-[56px] h-[28px] rounded-full cursor-pointer transition-all duration-300" style="background: rgba(141, 113, 104, 0.15);" title="Toggle Dark/Light Mode" type="button">
+                        <span class="sun-icon absolute left-[6px] material-symbols-outlined text-[14px] text-amber-500 transition-opacity duration-300" style="font-variation-settings: 'FILL' 1;">light_mode</span>
+                        <span class="moon-icon absolute right-[6px] material-symbols-outlined text-[14px] text-orange-300 transition-opacity duration-300" style="font-variation-settings: 'FILL' 1;">dark_mode</span>
+                        <span class="theme-knob absolute left-[3px] w-[22px] h-[22px] rounded-full bg-white shadow-md transition-transform duration-300"></span>
+                    </button>
+
                     <button onclick="window.print()" class="btn-primary text-white font-semibold rounded-lg px-6 py-3 flex items-center gap-2 hover:shadow-lg transition-all active:translate-y-0.5">
                         <span class="material-symbols-outlined text-[20px]">picture_as_pdf</span>
                         Export PDF / Print
@@ -90,42 +97,57 @@
             <!-- Dashboard Row 1: Executive KPI Panel -->
             <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-gutter mb-section-gap print:grid-cols-5 print:mb-8">
                 <!-- Inflow Card -->
-                <div class="glass-card rounded-xl p-6">
-                    <span class="text-xs text-on-surface-variant uppercase font-bold tracking-wider block mb-1">Total Inflow</span>
-                    <h3 class="font-display-lg text-display-lg text-green-600 font-bold">$<%= totalIncome.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></h3>
+                <div class="glass-card rounded-xl p-6 hover-lift">
+                    <span class="text-xs text-on-surface-variant uppercase font-bold tracking-wider block mb-2">Total Inflow</span>
+                    <h3 class="text-xl sm:text-2xl md:text-3xl lg:text-lg xl:text-xl 2xl:text-2xl text-green-500 font-bold tracking-tight flex items-baseline">
+                        <span class="text-primary font-bold mr-0.5 text-base sm:text-lg md:text-xl lg:text-sm xl:text-base 2xl:text-lg">$</span>
+                        <%= totalIncome.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %>
+                    </h3>
                 </div>
 
                 <!-- Outflow Card -->
-                <div class="glass-card rounded-xl p-6">
-                    <span class="text-xs text-on-surface-variant uppercase font-bold tracking-wider block mb-1">Total Outflow</span>
-                    <h3 class="font-display-lg text-display-lg text-coral font-bold print:text-black">$<%= totalExpense.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></h3>
+                <div class="glass-card rounded-xl p-6 hover-lift">
+                    <span class="text-xs text-on-surface-variant uppercase font-bold tracking-wider block mb-2">Total Outflow</span>
+                    <h3 class="text-xl sm:text-2xl md:text-3xl lg:text-lg xl:text-xl 2xl:text-2xl text-coral font-bold tracking-tight flex items-baseline print:text-black">
+                        <span class="text-primary font-bold mr-0.5 text-base sm:text-lg md:text-xl lg:text-sm xl:text-base 2xl:text-lg">$</span>
+                        <%= totalExpense.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %>
+                    </h3>
                 </div>
 
                 <!-- Net Flow Card -->
-                <div class="glass-card rounded-xl p-6">
-                    <span class="text-xs text-on-surface-variant uppercase font-bold tracking-wider block mb-1">Net Flow</span>
-                    <h3 class="font-display-lg text-display-lg <%= netSavings >= 0 ? 'text-green-600' : 'text-error' %> font-bold print:text-black">
-                        <%= netSavings < 0 ? '-' : '' %>$<%= Math.abs(netSavings).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %>
+                <div class="glass-card rounded-xl p-6 hover-lift">
+                    <span class="text-xs text-on-surface-variant uppercase font-bold tracking-wider block mb-2">Net Flow</span>
+                    <h3 class="text-xl sm:text-2xl md:text-3xl lg:text-lg xl:text-xl 2xl:text-2xl <%= netSavings >= 0 ? 'text-green-500' : 'text-error' %> font-bold tracking-tight flex items-baseline print:text-black">
+                        <% if (netSavings < 0) { %>
+                            <span class="text-error font-bold mr-0.5 text-base sm:text-lg md:text-xl lg:text-sm xl:text-base 2xl:text-lg">-</span>
+                        <% } %>
+                        <span class="text-primary font-bold mr-0.5 text-base sm:text-lg md:text-xl lg:text-sm xl:text-base 2xl:text-lg">$</span>
+                        <%= Math.abs(netSavings).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %>
                     </h3>
                 </div>
 
                 <!-- Total Saved Card -->
-                <div class="glass-card rounded-xl p-6">
-                    <span class="text-xs text-on-surface-variant uppercase font-bold tracking-wider block mb-1">Total Saved</span>
-                    <h3 class="font-display-lg text-display-lg text-primary font-bold print:text-black">$<%= typeof totalSavedAmount !== 'undefined' ? totalSavedAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00' %></h3>
+                <div class="glass-card rounded-xl p-6 hover-lift">
+                    <span class="text-xs text-on-surface-variant uppercase font-bold tracking-wider block mb-2">Total Saved</span>
+                    <h3 class="text-xl sm:text-2xl md:text-3xl lg:text-lg xl:text-xl 2xl:text-2xl text-on-background font-bold tracking-tight flex items-baseline print:text-black">
+                        <span class="text-primary font-bold mr-0.5 text-base sm:text-lg md:text-xl lg:text-sm xl:text-base 2xl:text-lg">$</span>
+                        <%= typeof totalSavedAmount !== 'undefined' ? totalSavedAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00' %>
+                    </h3>
                 </div>
 
                 <!-- Financial Health Card -->
-                <div class="glass-card rounded-xl p-6">
-                    <span class="text-xs text-on-surface-variant uppercase font-bold tracking-wider block mb-1">AI Health Rating</span>
-                    <h3 class="font-display-lg text-display-lg text-secondary font-bold print:text-black"><%= healthScore %>/100</h3>
+                <div class="glass-card rounded-xl p-6 hover-lift">
+                    <span class="text-xs text-on-surface-variant uppercase font-bold tracking-wider block mb-2">AI Health Rating</span>
+                    <h3 class="text-xl sm:text-2xl md:text-3xl lg:text-lg xl:text-xl 2xl:text-2xl text-on-background font-bold tracking-tight flex items-baseline print:text-black">
+                        <%= healthScore %><span class="text-xs text-on-surface-variant font-normal ml-0.5">/100</span>
+                    </h3>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter print:block">
                 <!-- Left: Budget Compliance Review -->
                 <div class="lg:col-span-6 flex flex-col gap-gutter print:w-full print:mb-8">
-                    <div class="glass-card rounded-xl p-6">
+                    <div class="glass-card rounded-xl p-6 hover-lift">
                         <h2 class="font-title-md text-title-md text-on-surface mb-6 flex items-center gap-2 border-b border-outline-variant/10 pb-4">
                             <span class="material-symbols-outlined text-primary">analytics</span>
                             Budget Compliance Audit
@@ -162,7 +184,7 @@
 
                 <!-- Right: Security / Fraud Ledger -->
                 <div class="lg:col-span-6 flex flex-col gap-gutter print:w-full">
-                    <div class="glass-card rounded-xl p-6">
+                    <div class="glass-card rounded-xl p-6 hover-lift">
                         <h2 class="font-title-md text-title-md text-on-surface mb-6 flex items-center gap-2 border-b border-outline-variant/10 pb-4">
                             <span class="material-symbols-outlined text-secondary">security</span>
                             Security / Fraud Alert Ledger
@@ -209,7 +231,7 @@
             </div>
 
             <!-- Savings Goals Progress Section -->
-            <div class="glass-card rounded-xl p-6 mt-gutter print:mt-8 page-break-inside-avoid">
+            <div class="glass-card rounded-xl p-6 mt-gutter print:mt-8 page-break-inside-avoid hover-lift">
                 <h2 class="font-title-md text-title-md text-on-surface mb-6 flex items-center gap-2 border-b border-outline-variant/10 pb-4">
                     <span class="material-symbols-outlined text-primary">savings</span>
                     Savings Goals Progress
@@ -250,7 +272,7 @@
             </div>
 
             <!-- Transaction Ledger Section (Bottom full table) -->
-            <div class="glass-card rounded-xl p-6 mt-gutter print:mt-8 page-break-inside-avoid">
+            <div class="glass-card rounded-xl p-6 mt-gutter print:mt-8 page-break-inside-avoid hover-lift">
                 <h2 class="font-title-md text-title-md text-on-surface mb-6 flex items-center gap-2 border-b border-outline-variant/10 pb-4">
                     <span class="material-symbols-outlined text-primary">receipt_long</span>
                     Monthly Transaction Ledger

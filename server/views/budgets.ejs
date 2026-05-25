@@ -13,7 +13,14 @@
                 <p class="font-label-md text-label-md text-primary tracking-wider uppercase mb-1">Financial Operations</p>
                 <h2 class="font-display-lg text-display-lg text-on-background">Budget Oversight</h2>
             </div>
-            <div class="flex flex-wrap gap-3">
+            <div class="flex flex-wrap items-center gap-3">
+                <!-- Theme Toggle Pill -->
+                <button onclick="toggleTheme()" class="theme-toggle-pill relative flex items-center w-[56px] h-[28px] rounded-full cursor-pointer transition-all duration-300" style="background: rgba(141, 113, 104, 0.15);" title="Toggle Dark/Light Mode" type="button">
+                    <span class="sun-icon absolute left-[6px] material-symbols-outlined text-[14px] text-amber-500 transition-opacity duration-300" style="font-variation-settings: 'FILL' 1;">light_mode</span>
+                    <span class="moon-icon absolute right-[6px] material-symbols-outlined text-[14px] text-orange-300 transition-opacity duration-300" style="font-variation-settings: 'FILL' 1;">dark_mode</span>
+                    <span class="theme-knob absolute left-[3px] w-[22px] h-[22px] rounded-full bg-white shadow-md transition-transform duration-300"></span>
+                </button>
+
                 <!-- Reset Budgets Form -->
                 <form action="/budgets/reset" method="POST" onsubmit="return confirm('Reset all budgets for this month? This cannot be undone.')">
                     <button type="submit" class="border border-outline-variant text-on-surface-variant px-5 py-3 rounded-xl font-label-md text-label-md hover:bg-surface-container hover:border-secondary hover:text-secondary transition-all flex items-center gap-2 active:scale-95">
@@ -81,8 +88,7 @@
         <!-- Top Overview Grid -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-gutter mb-section-gap w-full">
             <!-- Hero Card: Total Allocated Spend + Income Info -->
-            <div class="glass-card rounded-2xl p-container-padding lg:col-span-2 relative overflow-hidden group">
-                <div class="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none rounded-2xl"></div>
+            <div class="glass-card rounded-2xl p-container-padding lg:col-span-2 relative overflow-hidden group hover-lift">
                 <!-- Income vs Budget summary -->
                 <% const mIncome = (typeof monthlyIncome !== 'undefined') ? monthlyIncome : 0; %>
                 <% if (mIncome > 0) { %>
@@ -159,7 +165,7 @@
             </div>
 
             <!-- Warning Card: Compliance Alert -->
-            <div class="glass-card rounded-2xl p-container-padding border-secondary-fixed/50 bg-secondary-fixed/10 relative overflow-hidden">
+            <div class="glass-card rounded-2xl p-container-padding border-secondary-fixed/50 bg-secondary-fixed/10 relative overflow-hidden hover-lift">
                 <div class="absolute top-0 right-0 p-4 opacity-10">
                     <span class="material-symbols-outlined text-8xl text-secondary">warning</span>
                 </div>
@@ -221,7 +227,7 @@
             <% } else { %>
                 <% activeRings.forEach(function(b) { %>
                     <!-- Ring Card -->
-                    <div class="glass-card rounded-2xl p-6 flex flex-col items-center text-center hover:translate-y-[-4px] transition-transform duration-300 relative group">
+                    <div class="glass-card rounded-2xl p-6 flex flex-col items-center text-center hover-lift relative group">
                         <h4 class="font-title-md text-title-md mb-6 <%= b.percent >= 100 ? 'text-secondary' : 'text-on-background' %>">
                             <%= b.category %>
                         </h4>
