@@ -618,24 +618,25 @@ body.preloader-active #loginCard {
     background-clip: padding-box;
 }
 
-/* Elegant Page Staggered Fade-in Animation */
+/* Elegant Page Staggered Drop-in Animation */
 .page-fade-in {
-    animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation: dropInSpring 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
 }
 
 .stagger-1 { animation-delay: 0.1s; }
 .stagger-2 { animation-delay: 0.2s; }
 .stagger-3 { animation-delay: 0.3s; }
 .stagger-4 { animation-delay: 0.4s; }
+.stagger-5 { animation-delay: 0.5s; }
 
-@keyframes fadeInUp {
-    from {
+@keyframes dropInSpring {
+    0% {
         opacity: 0;
-        transform: translateY(24px) scale(0.98);
+        transform: translateY(-40px) scale(0.95) perspective(1000px) rotateX(-10deg);
     }
-    to {
+    100% {
         opacity: 1;
-        transform: translateY(0) scale(1);
+        transform: translateY(0) scale(1) perspective(1000px) rotateX(0);
     }
 }
 

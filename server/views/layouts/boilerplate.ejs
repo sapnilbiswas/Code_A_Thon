@@ -118,13 +118,9 @@
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
-    <script src="/js/transition.js"></script>
     <link href="/css/style.css" rel="stylesheet"/>
 </head>
 <body class="bg-background min-h-screen flex items-center justify-center relative overflow-hidden font-body-lg text-on-surface transition-colors duration-300">
-    <!-- Global Three.js Transition Canvas -->
-    <canvas id="global-transition-canvas" style="position: fixed; inset: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none;"></canvas>
-
     <!-- Flash Messages (if any) -->
     <%- include('../partials/flash') %>
     
