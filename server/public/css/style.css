@@ -403,8 +403,8 @@ nav a.active-nav {
     color: #ffb59d !important;
 }
 
-.dark .md\:hidden a.text-primary div {
-
+/* ============================================================
+   DARK — BUTTONS
    ============================================================ */
 .dark .btn-primary {
     background: linear-gradient(180deg, #ff8555 0%, #ab3500 100%) !important;
