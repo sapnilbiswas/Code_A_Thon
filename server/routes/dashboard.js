@@ -117,7 +117,38 @@ router.get('/dashboard', async (req, res) => {
         const preventedLosses = preventedLossesSum > 0 
             ? `$${preventedLossesSum.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
             : '$0';
+        // 3.5 Previous Period calculations for Trend Data
+        const durationMs = endDate - startDate;
+        const durationDays = Math.max(1, Math.round(durationMs / (1000 * 60 * 60 * 24)));
 
+        const previousEndDate = new Date(startDate);
+        previousEndDate.setMilliseconds(-1);
+        const previousStartDate = new Date(previousEndDate);
+        previousStartDate.setDate(previousStartDate.getDate() - durationDays + 1); // +1 because end date is inclusive
+
+        const previousTransactions = await Transaction.find({
+            user: userId,
+            date: { $gte: previousStartDate, $lte: previousEndDate }
+        });
+
+        const prevFlaggedCount = previousTransactions.filter(t => t.isFlagged).length;
+        const prevProcessedVolumeSum = previousTransactions.reduce((sum, t) => sum + t.amount, 0);
+        const prevPreventedLossesSum = previousTransactions
+            .filter(t => t.isFlagged && t.type === 'expense')
+            .reduce((sum, t) => sum + t.amount, 0);
+
+        const calculateTrend = (current, previous) => {
+            if (previous === 0) return current > 0 ? 100 : 0;
+            return ((current - previous) / previous) * 100;
+        };
+
+        const volumeTrendNum = calculateTrend(processedVolumeSum, prevProcessedVolumeSum);
+        const flaggedTrendNum = calculateTrend(flaggedCount, prevFlaggedCount);
+        const preventedLossesTrendNum = calculateTrend(preventedLossesSum, prevPreventedLossesSum);
+
+        const volumeTrend = (volumeTrendNum > 0 ? '+' : '') + volumeTrendNum.toFixed(1) + '%';
+        const flaggedTrend = (flaggedTrendNum > 0 ? '+' : '') + flaggedTrendNum.toFixed(1) + '%';
+        const preventedLossesTrend = (preventedLossesTrendNum > 0 ? '+' : '') + preventedLossesTrendNum.toFixed(1) + '%';
         // 4. Budgets and Health Score Calculation
         // Find budgets corresponding to the end of the range
         let budgets = await Budget.find({
@@ -152,9 +183,6 @@ router.get('/dashboard', async (req, res) => {
         const monthlyExpenseTotal = rangeExpenses.reduce((s, t) => s + t.amount, 0);
         const monthlySavings = monthlyIncomeTotal - monthlyExpenseTotal;
         const savingsRate = monthlyIncomeTotal > 0 ? Math.round((monthlySavings / monthlyIncomeTotal) * 100) : 0;
-
-        const durationMs = endDate - startDate;
-        const durationDays = Math.max(1, Math.round(durationMs / (1000 * 60 * 60 * 24)));
 
         const spentMap = {};
         rangeExpenses.forEach(t => {
@@ -206,7 +234,13 @@ router.get('/dashboard', async (req, res) => {
         const totals = {
             processedVolume,
             flaggedCount,
-            preventedLosses
+            preventedLosses,
+            volumeTrend,
+            volumeTrendNum,
+            flaggedTrend,
+            flaggedTrendNum,
+            preventedLossesTrend,
+            preventedLossesTrendNum
         };
 
         // 6. Gather transaction chart data split into 4 intervals
