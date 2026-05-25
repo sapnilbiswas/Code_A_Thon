@@ -14,7 +14,8 @@ router.get('/', async (req, res) => {
         const error = req.query.error || null;
         const remaining = req.query.remaining ? parseFloat(req.query.remaining) : null;
         const income = req.query.income ? parseFloat(req.query.income) : null;
-        res.render('transactions', { transactions, error, remaining, income });
+        const budget = req.query.budget ? parseFloat(req.query.budget) : null;
+        res.render('transactions', { transactions, error, remaining, income, budget });
     } catch (e) {
         console.error("Error fetching transactions:", e);
         res.redirect('/dashboard');
@@ -74,15 +75,32 @@ router.post('/', async (req, res) => {
             const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
             const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
 
-            const [incomeTxns, expenseTxns] = await Promise.all([
+            const currentMonth = now.getMonth() + 1;
+            const currentYear = now.getFullYear();
+
+            const [incomeTxns, expenseTxns, budgets] = await Promise.all([
                 Transaction.find({ user: req.user._id, type: 'income', date: { $gte: monthStart, $lte: monthEnd } }),
-                Transaction.find({ user: req.user._id, type: 'expense', date: { $gte: monthStart, $lte: monthEnd } })
+                Transaction.find({ user: req.user._id, type: 'expense', date: { $gte: monthStart, $lte: monthEnd } }),
+                Budget.find({ user: req.user._id, periodMonth: currentMonth, periodYear: currentYear })
             ]);
 
             const totalIncome = incomeTxns.reduce((s, t) => s + t.amount, 0);
             const totalExpenses = expenseTxns.reduce((s, t) => s + t.amount, 0);
+            const globalBudget = budgets.reduce((s, b) => s + b.limitAmount, 0);
 
-            if (totalIncome > 0 && totalExpenses + parsedAmount > totalIncome) {
+            if (totalIncome === 0) {
+                return res.redirect(`/transactions?error=zero_income`);
+            }
+
+            if (globalBudget === 0) {
+                return res.redirect(`/transactions?error=zero_budget`);
+            }
+
+            if (totalExpenses + parsedAmount > globalBudget) {
+                return res.redirect(`/transactions?error=budget_exceeded&budget=${globalBudget.toFixed(2)}`);
+            }
+
+            if (totalExpenses + parsedAmount > totalIncome) {
                 const remaining = Math.max(0, totalIncome - totalExpenses);
                 return res.redirect(`/transactions?error=insufficient_balance&remaining=${remaining.toFixed(2)}&income=${totalIncome.toFixed(2)}`);
             }

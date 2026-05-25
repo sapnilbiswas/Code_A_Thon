@@ -77,6 +77,12 @@ router.get('/', async (req, res) => {
             isFlagged: true
         }).sort({ date: -1 });
 
+        // 3.5 Fetch Savings Goals
+        const SavingsGoal = require('../models/SavingsGoal');
+        const savingsGoals = await SavingsGoal.find({ user: userId });
+        let totalSavedAmount = 0;
+        savingsGoals.forEach(g => { totalSavedAmount += g.currentAmount; });
+
         // 4. Retrieve financial health score from logged in user
         const healthScore = req.user.overallHealthScore !== undefined ? req.user.overallHealthScore : 100;
 
@@ -89,6 +95,8 @@ router.get('/', async (req, res) => {
             processedVolume,
             budgetSummaries,
             securityAlerts,
+            savingsGoals,
+            totalSavedAmount,
             healthScore,
             monthlyTransactions
         });

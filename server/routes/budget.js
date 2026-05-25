@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Budget = require('../models/Budget');
 const Transaction = require('../models/Transaction');
+const SavingsGoal = require('../models/SavingsGoal');
 const { isLoggedIn } = require('../middleware/auth');
 
 // Protect all budget routes
@@ -18,6 +19,22 @@ function getCurrentMonthRange() {
     end.setSeconds(end.getSeconds() - 1);
 
     return { start, end };
+}
+
+// Helper: unlock milestones for a goal based on its current percent
+function updateMilestones(goal) {
+    const newPercent = goal.targetAmount > 0 ? (goal.currentAmount / goal.targetAmount) * 100 : 0;
+    goal.milestones.forEach(m => {
+        if (!m.reached && newPercent >= m.percent) {
+            m.reached = true;
+            m.reachedAt = new Date();
+        }
+        // Roll back milestones if percent dropped below them
+        if (m.reached && newPercent < m.percent) {
+            m.reached = false;
+            m.reachedAt = undefined;
+        }
+    });
 }
 
 // --- GET budgets page ---
@@ -94,25 +111,89 @@ router.post('/', async (req, res) => {
         const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
 
         // Validate: total budget must not exceed monthly income
-        const [monthlyIncomeTxns] = await Promise.all([
-            Transaction.find({ user: req.user._id, type: 'income', date: { $gte: monthStart, $lte: monthEnd } })
-        ]);
-
+        const monthlyIncomeTxns = await Transaction.find({
+            user: req.user._id, type: 'income', date: { $gte: monthStart, $lte: monthEnd }
+        });
         const totalIncome = monthlyIncomeTxns.reduce((s, t) => s + t.amount, 0);
-        const newTotal = parseFloat(limitAmount);
+        const newBudgetLimit = parseFloat(limitAmount);
 
-        if (totalIncome > 0 && newTotal > totalIncome) {
-            return res.redirect(`/budgets?error=exceeds_income&income=${totalIncome.toFixed(2)}&attempted=${newTotal.toFixed(2)}`);
+        if (totalIncome === 0) {
+            return res.redirect(`/budgets?error=zero_income`);
         }
 
+        if (newBudgetLimit > totalIncome) {
+            return res.redirect(`/budgets?error=exceeds_income&income=${totalIncome.toFixed(2)}&attempted=${newBudgetLimit.toFixed(2)}`);
+        }
+
+        // Get old budget to calculate the change
+        const existingBudget = await Budget.findOne({
+            user: req.user._id, category, periodMonth: currentMonth, periodYear: currentYear
+        });
+        const oldBudgetLimit = existingBudget ? existingBudget.limitAmount : 0;
+
+        // Save the new budget
         await Budget.findOneAndUpdate(
             { user: req.user._id, category, periodMonth: currentMonth, periodYear: currentYear },
             {
-                limitAmount: parseFloat(limitAmount),
+                limitAmount: newBudgetLimit,
                 alertThreshold: alertThreshold ? parseInt(alertThreshold) : 80
             },
             { upsert: true, new: true }
         );
+
+        // ─── AUTO SAVINGS LOGIC ──────────────────────────────────────────────
+        //
+        // Rule: "remaining money" (income - budget) always goes to savings goals.
+        // Goals are filled smallest currentAmount first (least amount first).
+        //
+        // Case A: Budget DECREASED → more surplus available → deposit surplus to savings.
+        // Case B: Budget INCREASED → less surplus → withdraw the extra amount from savings
+        //         (starting from the goal with the SMALLEST currentAmount).
+        //
+        // In both cases, we recalculate the full surplus and reconcile savings.
+        // ─────────────────────────────────────────────────────────────────────
+
+        const budgetDelta = newBudgetLimit - oldBudgetLimit; // + means budget went up, - means budget went down
+
+        // Load all incomplete savings goals sorted by currentAmount ASC (smallest first)
+        let goals = await SavingsGoal.find({ user: req.user._id }).sort({ currentAmount: 1 });
+        const incompleteGoals = goals.filter(g => g.currentAmount < g.targetAmount);
+
+        if (budgetDelta > 0 && incompleteGoals.length > 0) {
+            // Budget was INCREASED → need to withdraw budgetDelta from savings (smallest first)
+            let toWithdraw = budgetDelta;
+            for (const goal of incompleteGoals) {
+                if (toWithdraw <= 0) break;
+                const canWithdraw = Math.min(goal.currentAmount, toWithdraw);
+                if (canWithdraw > 0) {
+                    goal.currentAmount = Math.max(0, goal.currentAmount - canWithdraw);
+                    updateMilestones(goal);
+                    await goal.save();
+                    toWithdraw -= canWithdraw;
+                }
+            }
+            // Reload goals after withdrawal
+            goals = await SavingsGoal.find({ user: req.user._id }).sort({ currentAmount: 1 });
+        }
+
+        // Now distribute the full surplus into savings (smallest currentAmount first)
+        const surplus = totalIncome - newBudgetLimit;
+        if (surplus > 0) {
+            const freshGoals = await SavingsGoal.find({ user: req.user._id }).sort({ currentAmount: 1 });
+            const freshIncomplete = freshGoals.filter(g => g.currentAmount < g.targetAmount);
+            let toDeposit = surplus;
+
+            for (const goal of freshIncomplete) {
+                if (toDeposit <= 0) break;
+                const remaining = goal.targetAmount - goal.currentAmount;
+                const deposit = Math.min(remaining, toDeposit);
+                goal.currentAmount += deposit;
+                toDeposit -= deposit;
+                updateMilestones(goal);
+                await goal.save();
+            }
+        }
+        // ─────────────────────────────────────────────────────────────────────
 
         res.redirect('/budgets');
     } catch (e) {

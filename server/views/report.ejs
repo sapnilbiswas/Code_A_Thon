@@ -88,7 +88,7 @@
             </div>
 
             <!-- Dashboard Row 1: Executive KPI Panel -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter mb-section-gap print:grid-cols-4 print:mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-gutter mb-section-gap print:grid-cols-5 print:mb-8">
                 <!-- Inflow Card -->
                 <div class="glass-card rounded-xl p-6">
                     <span class="text-xs text-on-surface-variant uppercase font-bold tracking-wider block mb-1">Total Inflow</span>
@@ -101,18 +101,24 @@
                     <h3 class="font-display-lg text-display-lg text-coral font-bold print:text-black">$<%= totalExpense.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></h3>
                 </div>
 
-                <!-- Net Savings Card -->
+                <!-- Net Flow Card -->
                 <div class="glass-card rounded-xl p-6">
-                    <span class="text-xs text-on-surface-variant uppercase font-bold tracking-wider block mb-1">Net Savings</span>
+                    <span class="text-xs text-on-surface-variant uppercase font-bold tracking-wider block mb-1">Net Flow</span>
                     <h3 class="font-display-lg text-display-lg <%= netSavings >= 0 ? 'text-green-600' : 'text-error' %> font-bold print:text-black">
                         <%= netSavings < 0 ? '-' : '' %>$<%= Math.abs(netSavings).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %>
                     </h3>
                 </div>
 
+                <!-- Total Saved Card -->
+                <div class="glass-card rounded-xl p-6">
+                    <span class="text-xs text-on-surface-variant uppercase font-bold tracking-wider block mb-1">Total Saved</span>
+                    <h3 class="font-display-lg text-display-lg text-primary font-bold print:text-black">$<%= typeof totalSavedAmount !== 'undefined' ? totalSavedAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00' %></h3>
+                </div>
+
                 <!-- Financial Health Card -->
                 <div class="glass-card rounded-xl p-6">
                     <span class="text-xs text-on-surface-variant uppercase font-bold tracking-wider block mb-1">AI Health Rating</span>
-                    <h3 class="font-display-lg text-display-lg text-primary font-bold print:text-black"><%= healthScore %>/100</h3>
+                    <h3 class="font-display-lg text-display-lg text-secondary font-bold print:text-black"><%= healthScore %>/100</h3>
                 </div>
             </div>
 
@@ -199,6 +205,47 @@
                             </div>
                         <% } %>
                     </div>
+                </div>
+            </div>
+
+            <!-- Savings Goals Progress Section -->
+            <div class="glass-card rounded-xl p-6 mt-gutter print:mt-8 page-break-inside-avoid">
+                <h2 class="font-title-md text-title-md text-on-surface mb-6 flex items-center gap-2 border-b border-outline-variant/10 pb-4">
+                    <span class="material-symbols-outlined text-primary">savings</span>
+                    Savings Goals Progress
+                </h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <% if (typeof savingsGoals === 'undefined' || savingsGoals.length === 0) { %>
+                        <div class="col-span-full text-center py-6">
+                            <p class="text-on-surface-variant font-body-lg">No active savings goals found.</p>
+                        </div>
+                    <% } else { %>
+                        <% savingsGoals.forEach(goal => { 
+                            const percent = Math.min(100, Math.round((goal.currentAmount / goal.targetAmount) * 100));
+                        %>
+                            <div class="border border-outline-variant/20 rounded-lg p-4 bg-surface-container-lowest flex flex-col justify-between">
+                                <div>
+                                    <div class="flex justify-between items-center mb-2">
+                                        <h4 class="font-semibold text-on-surface"><%= goal.title %></h4>
+                                        <span class="text-xs font-bold <%= percent >= 100 ? 'text-green-600' : 'text-primary' %>"><%= percent %>%</span>
+                                    </div>
+                                    <div class="w-full bg-surface-container rounded-full h-2 overflow-hidden mb-2">
+                                        <div class="h-full <%= percent >= 100 ? 'bg-green-500' : 'bg-primary' %> rounded-full" style="width: <%= percent %>%"></div>
+                                    </div>
+                                    <div class="flex justify-between text-xs text-on-surface-variant mb-2">
+                                        <span>$<%= goal.currentAmount.toLocaleString() %> saved</span>
+                                        <span>Goal: $<%= goal.targetAmount.toLocaleString() %></span>
+                                    </div>
+                                </div>
+                                <% if (percent >= 100) { %>
+                                    <div class="mt-2 text-[10px] font-bold text-green-600 uppercase tracking-wider text-center bg-green-500/10 py-1.5 rounded">
+                                        Goal Achieved! 🏆
+                                    </div>
+                                <% } %>
+                            </div>
+                        <% }) %>
+                    <% } %>
                 </div>
             </div>
 

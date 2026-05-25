@@ -9,8 +9,17 @@ router.use(isLoggedIn);
 // --- Get Savings Goals List ---
 router.get('/', async (req, res) => {
     try {
-        const goals = await SavingsGoal.find({ user: req.user._id }).sort({ createdAt: -1 });
-        res.render('savings', { goals });
+        const goals = await SavingsGoal.find({ user: req.user._id }).sort({ currentAmount: 1 });
+
+        // Detect goals whose targetDate is today or earlier and are 100% achieved
+        const today = new Date();
+        today.setHours(23, 59, 59, 999);
+        const achievedGoals = goals.filter(g => {
+            const percent = g.targetAmount > 0 ? (g.currentAmount / g.targetAmount) * 100 : 0;
+            return g.targetDate && new Date(g.targetDate) <= today && percent >= 100;
+        });
+
+        res.render('savings', { goals, achievedGoals });
     } catch (e) {
         console.error("Error fetching savings goals:", e);
         res.redirect('/dashboard');
@@ -59,6 +68,19 @@ router.post('/:id/deposit', async (req, res) => {
             return res.redirect('/savings');
         }
 
+        // Check if monthly income is 0
+        const Transaction = require('../models/Transaction');
+        const now = new Date();
+        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+        const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+        const incomeTxns = await Transaction.find({ user: req.user._id, type: 'income', date: { $gte: monthStart, $lte: monthEnd } });
+        const totalIncome = incomeTxns.reduce((s, t) => s + t.amount, 0);
+
+        if (totalIncome === 0) {
+            req.session.error = "Zero Income: You cannot deposit savings because your monthly income is $0.";
+            return res.redirect('/savings');
+        }
+
         const goal = await SavingsGoal.findOne({ _id: req.params.id, user: req.user._id });
         if (!goal) {
             req.session.error = "Savings goal not found.";
@@ -82,7 +104,9 @@ router.post('/:id/deposit', async (req, res) => {
         await goal.save();
 
         let successMsg = `Deposited $${depositAmount.toLocaleString()} to "${goal.title}"!`;
-        if (unlockedMilestones.length > 0) {
+        if (unlockedMilestones.includes(100)) {
+            successMsg = `🏆 Congratulations! You have reached your savings goal of $${goal.targetAmount.toLocaleString()} for "${goal.title}"!`;
+        } else if (unlockedMilestones.length > 0) {
             const milestoneText = unlockedMilestones.map(p => `${p}%`).join(', ');
             successMsg += ` 🎉 Milestone Unlocked: Reached ${milestoneText} of your target!`;
         }

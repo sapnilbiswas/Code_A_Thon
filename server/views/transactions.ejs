@@ -25,6 +25,22 @@
                         You only have $<%= typeof remaining !== 'undefined' && remaining ? remaining : '0' %> remaining.
                         Add income first before recording this expense.
                     </p>
+                <% } else if (error === 'zero_income') { %>
+                    <p class="font-semibold text-error">Zero Income</p>
+                    <p class="text-sm text-on-surface-variant mt-0.5">
+                        You cannot record expenses because your monthly income is $0. Please add an income transaction first.
+                    </p>
+                <% } else if (error === 'zero_budget') { %>
+                    <p class="font-semibold text-error">Zero Budget</p>
+                    <p class="text-sm text-on-surface-variant mt-0.5">
+                        Your budget is $0. You must set a budget in the Budgets tab before recording expenses.
+                    </p>
+                <% } else if (error === 'budget_exceeded') { %>
+                    <p class="font-semibold text-error">Budget Exceeded</p>
+                    <p class="text-sm text-on-surface-variant mt-0.5">
+                        This expense would exceed your monthly budget of $<%= typeof budget !== 'undefined' && budget ? budget : '0' %>. 
+                        Please increase your budget before recording this expense.
+                    </p>
                 <% } %>
             </div>
             <button onclick="this.parentElement.remove()" class="ml-auto text-on-surface-variant hover:text-on-surface">

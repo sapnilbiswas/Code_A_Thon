@@ -40,11 +40,41 @@
                         exceeds your monthly income of $<%= typeof errorIncome !== 'undefined' && errorIncome ? errorIncome.toLocaleString() : '—' %>.
                         Please reduce the limit amount.
                     </p>
+                <% } else if (error === 'zero_income') { %>
+                    <p class="font-semibold text-error">Zero Income</p>
+                    <p class="text-sm text-on-surface-variant mt-0.5">
+                        You cannot set a budget because your monthly income is $0. Please add an income transaction first.
+                    </p>
                 <% } %>
             </div>
             <button onclick="this.parentElement.remove()" class="ml-auto text-on-surface-variant hover:text-on-surface">
                 <span class="material-symbols-outlined text-sm">close</span>
             </button>
+        </div>
+        <% } %>
+
+        <!-- Auto-Savings Surplus Panel -->
+        <% 
+            const mInc = (typeof monthlyIncome !== 'undefined') ? monthlyIncome : 0;
+            const mLim = (typeof limitTotal !== 'undefined') ? limitTotal : 0;
+            const surplus = Math.max(0, mInc - mLim);
+        %>
+        <% if (mInc > 0) { %>
+        <div class="mb-6 rounded-xl px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3" style="background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(139,92,246,0.08)); border: 1px solid rgba(99,102,241,0.3);">
+            <div class="flex items-start gap-3">
+                <span class="material-symbols-outlined text-indigo-400 mt-0.5" style="font-size:20px;">auto_fix_high</span>
+                <div>
+                    <span class="font-semibold text-indigo-300 text-sm">Auto-Savings Active</span>
+                    <p class="text-xs text-on-surface-variant mt-0.5">
+                        Every time you update your budget, the leftover income is automatically deposited into your savings goals (smallest goal first). Increasing your budget withdraws from savings.
+                    </p>
+                </div>
+            </div>
+            <div class="shrink-0 text-right">
+                <div class="text-xs text-on-surface-variant uppercase tracking-wider mb-0.5">Current Surplus</div>
+                <div class="text-2xl font-bold text-indigo-300">$<%= surplus.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0}) %></div>
+                <div class="text-xs text-on-surface-variant">going to savings</div>
+            </div>
         </div>
         <% } %>
 
