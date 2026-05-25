@@ -181,4 +181,79 @@ router.post('/upload', async (req, res) => {
     }
 });
 
+// --- Parse Statement / Receipt via Gemini AI ---
+router.post('/parse-file', async (req, res) => {
+    try {
+        const { text, base64, mimeType } = req.body;
+        const apiKey = process.env.GEMINI_API_KEY;
+        if (!apiKey) {
+            return res.status(500).json({ success: false, error: "Gemini API key is not configured on the server" });
+        }
+
+        let parts = [];
+        if (base64 && mimeType) {
+            parts.push({
+                inlineData: {
+                    mimeType: mimeType,
+                    data: base64
+                }
+            });
+            parts.push({
+                text: "Analyze the uploaded bank statement or receipt image/file and extract all transactions as a JSON list. For each transaction, provide:\n1. date (format as YYYY-MM-DD, e.g. '2026-05-25')\n2. description (clean, concise merchant/payer name, e.g. 'Amazon Web Services' instead of long statement code)\n3. amount (positive decimal number)\n4. category (must be one of: 'Groceries', 'Rent', 'Entertainment', 'Transfer', 'Salary', 'Other')\n5. type (must be one of: 'expense', 'income')"
+            });
+        } else if (text) {
+            parts.push({
+                text: `Analyze the following bank statement or receipt text and extract all transactions as a JSON list. For each transaction, provide:\n1. date (format as YYYY-MM-DD, e.g. '2026-05-25')\n2. description (clean, concise merchant/payer name)\n3. amount (positive decimal number)\n4. category (must be one of: 'Groceries', 'Rent', 'Entertainment', 'Transfer', 'Salary', 'Other')\n5. type (must be one of: 'expense', 'income')\n\nDocument content:\n${text}`
+            });
+        } else {
+            return res.status(400).json({ success: false, error: "No text or file data provided" });
+        }
+
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts }],
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "ARRAY",
+                        items: {
+                            type: "OBJECT",
+                            properties: {
+                                date: { type: "STRING" },
+                                description: { type: "STRING" },
+                                amount: { type: "NUMBER" },
+                                category: { type: "STRING", enum: ["Groceries", "Rent", "Entertainment", "Transfer", "Salary", "Other"] },
+                                type: { type: "STRING", enum: ["expense", "income"] }
+                            },
+                            required: ["date", "description", "amount", "category", "type"]
+                        }
+                    }
+                }
+            })
+        });
+
+        const data = await response.json();
+        if (data.error) {
+            console.error("Gemini API error response:", data.error);
+            return res.status(500).json({ success: false, error: data.error.message || "Gemini API error" });
+        }
+
+        const jsonText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!jsonText) {
+            console.error("No JSON text inside candidates:", JSON.stringify(data));
+            return res.status(500).json({ success: false, error: "Failed to parse data with Gemini AI (empty output)" });
+        }
+
+        const transactions = JSON.parse(jsonText);
+        res.json({ success: true, transactions });
+    } catch (e) {
+        console.error("Error calling Gemini API:", e);
+        res.status(500).json({ success: false, error: e.message || "Server error during Gemini parsing" });
+    }
+});
+
 module.exports = router;
+

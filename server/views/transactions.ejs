@@ -84,24 +84,37 @@
                     <div class="absolute inset-0 bg-gradient-to-r from-tertiary-container/5 to-transparent pointer-events-none"></div>
                     <h2 class="font-title-md text-title-md text-on-surface mb-3 flex items-center gap-2 relative z-10">
                         <span class="material-symbols-outlined text-tertiary animate-pulse">cloud_upload</span>
-                        Batch Statement Ingest
+                        Document & Statement Ingest
                     </h2>
-                    <p class="text-xs text-on-surface-variant mb-4">Upload a bank statement CSV to dynamically analyze and ingest multiple transactions instantly!</p>
+                    <p class="text-xs text-on-surface-variant mb-4">Upload a CSV, PDF, or statement/receipt Image to dynamically analyze and ingest multiple transactions instantly!</p>
                     
                     <div class="flex flex-col gap-3">
-                        <div class="border-2 border-dashed border-outline-variant/30 rounded-lg p-4 text-center cursor-pointer hover:border-primary/50 transition-colors relative" onclick="document.getElementById('csv-file-input').click()">
-                            <span class="material-symbols-outlined text-outline text-[32px] mb-1">upload_file</span>
-                            <p class="text-[11px] text-on-surface font-semibold">Click to select bank statement CSV</p>
-                            <p class="text-[9px] text-on-surface-variant mt-0.5">Format: description, amount, category, type, date</p>
-                            <input id="csv-file-input" type="file" accept=".csv" class="hidden" onchange="handleCSVFileSelect(event)"/>
+                        <div id="upload-dropzone" class="border-2 border-dashed border-outline-variant/30 rounded-lg p-6 text-center cursor-pointer hover:border-primary/50 transition-all duration-300 relative flex flex-col items-center justify-center gap-2" onclick="document.getElementById('statement-file-input').click()">
+                            <div class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant shadow-inner transition-transform duration-300 transform" id="upload-icon-wrapper">
+                                <span class="material-symbols-outlined text-[28px]" id="upload-icon">upload_file</span>
+                            </div>
+                            <div>
+                                <p class="text-[11px] text-on-surface font-semibold" id="upload-text">Click or drag & drop file here</p>
+                                <p class="text-[9px] text-on-surface-variant mt-0.5" id="upload-subtext">Supports: CSV, PDF, Images (PNG, JPG, JPEG)</p>
+                            </div>
+                            <input id="statement-file-input" type="file" accept=".csv,.pdf,image/*" class="hidden" onchange="handleFileSelect(event)"/>
+                        </div>
+                        <div id="file-ingest-progress" class="hidden flex flex-col gap-1.5 p-3 rounded-lg bg-surface-container/60 border border-outline-variant/20">
+                            <div class="flex justify-between items-center text-[10px] font-semibold text-primary">
+                                <span id="progress-status">Analyzing file...</span>
+                                <span id="progress-percentage">0%</span>
+                            </div>
+                            <div class="w-full bg-outline-variant/20 h-1.5 rounded-full overflow-hidden">
+                                <div id="progress-bar-fill" class="bg-primary h-full w-0 transition-all duration-300"></div>
+                            </div>
                         </div>
                         <div id="csv-file-info" class="hidden text-[10px] text-primary font-semibold flex items-center gap-1">
                             <span class="material-symbols-outlined text-[14px]">check_circle</span>
                             <span id="csv-filename">filename.csv</span>
                         </div>
-                        <button id="btn-upload-csv" onclick="processCSVUpload()" type="button" disabled class="btn-primary text-white text-xs font-semibold py-2.5 rounded-lg flex items-center justify-center gap-1 opacity-50 cursor-not-allowed">
-                            <span class="material-symbols-outlined text-[16px]">upload</span>
-                            Process Batch Upload
+                        <button id="btn-upload-csv" onclick="processSelectedFile()" type="button" disabled class="btn-primary text-white text-xs font-semibold py-2.5 rounded-lg flex items-center justify-center gap-1 opacity-50 cursor-not-allowed">
+                            <span class="material-symbols-outlined text-[16px]">analytics</span>
+                            Analyze & Ingest
                         </button>
                     </div>
                 </div>
@@ -313,6 +326,59 @@
         </div>
     </div>
 </div>
+
+<!-- Ingest Review & Verification Modal -->
+<div id="ingestReviewModal" class="fixed inset-0 z-[100] bg-[#0d0d0d]/80 backdrop-blur-sm flex items-center justify-center opacity-0 pointer-events-none transition-all duration-300">
+    <div class="glass-card rounded-2xl p-6 max-w-[850px] w-full mx-4 max-h-[85vh] flex flex-col transform scale-95 transition-transform duration-300" id="ingestReviewCard">
+        <div class="flex items-center justify-between mb-4 border-b border-outline-variant/30 pb-3">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary">
+                    <span class="material-symbols-outlined text-2xl">rate_review</span>
+                </div>
+                <div>
+                    <h3 class="font-title-md text-title-md text-on-background">Verify Extracted Transactions</h3>
+                    <p id="ingestReviewSubtitle" class="font-body-xs text-xs text-on-surface-variant">We found X transactions. Adjust fields below if needed before ingesting.</p>
+                </div>
+            </div>
+            <button onclick="dismissIngestReview()" class="text-on-surface-variant hover:text-on-surface">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        
+        <!-- Editable Transactions Table -->
+        <div class="overflow-y-auto flex-grow mb-6 pr-2 max-h-[50vh]">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="border-b border-outline-variant/20">
+                        <th class="py-2.5 px-3 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-xs">Date</th>
+                        <th class="py-2.5 px-3 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-xs">Description</th>
+                        <th class="py-2.5 px-3 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-xs">Category</th>
+                        <th class="py-2.5 px-3 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-xs">Type</th>
+                        <th class="py-2.5 px-3 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-xs text-right">Amount ($)</th>
+                        <th class="py-2.5 px-3 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-xs text-right">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="ingestReviewTableBody" class="font-body-sm text-body-sm text-on-surface divide-y divide-outline-variant/10">
+                    <!-- Rows injected via JS -->
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="flex justify-between items-center gap-3 pt-3 border-t border-outline-variant/30">
+            <span id="ingestModalSummary" class="text-xs text-on-surface-variant font-medium">Total: 0 transactions</span>
+            <div class="flex gap-3">
+                <button onclick="dismissIngestReview()" class="px-5 py-2.5 border border-outline-variant rounded-xl font-label-md text-label-md text-on-surface-variant hover:bg-surface-container transition-colors text-xs">
+                    Cancel
+                </button>
+                <button onclick="confirmIngestUpload()" id="btn-confirm-ingest" class="px-5 py-2.5 bg-primary text-white rounded-xl font-label-md text-label-md hover:bg-primary/95 transition-colors flex items-center justify-center gap-2 text-xs font-semibold">
+                    <span class="material-symbols-outlined text-[16px]">done_all</span>
+                    Ingest Verified Records
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 <!-- Mobile Bottom NavBar (Partial) -->
 <%- include('partials/mobile_nav') %>
@@ -535,68 +601,441 @@
     }
 
     let parsedTransactions = [];
+    let selectedFile = null;
 
-    function handleCSVFileSelect(event) {
+    // Drag & drop dropzone listeners
+    const dropzone = document.getElementById('upload-dropzone');
+    if (dropzone) {
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropzone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropzone.classList.add('border-primary/60', 'bg-primary/5');
+                document.getElementById('upload-icon-wrapper').classList.add('scale-110');
+            }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropzone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropzone.classList.remove('border-primary/60', 'bg-primary/5');
+                document.getElementById('upload-icon-wrapper').classList.remove('scale-110');
+            }, false);
+        });
+
+        dropzone.addEventListener('drop', (e) => {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            if (files.length > 0) {
+                const input = document.getElementById('statement-file-input');
+                input.files = files;
+                handleFileSelect({ target: { files: files } });
+            }
+        });
+    }
+
+    function loadScript(url) {
+        return new Promise((resolve, reject) => {
+            const existing = document.querySelector(`script[src="${url}"]`);
+            if (existing) {
+                if (window.pdfjsLib || window.Tesseract) return resolve();
+                existing.addEventListener('load', resolve);
+                existing.addEventListener('error', reject);
+                return;
+            }
+            const script = document.createElement('script');
+            script.src = url;
+            script.onload = resolve;
+            script.onerror = reject;
+            document.head.appendChild(script);
+        });
+    }
+
+    async function parsePDFText(file, onProgress) {
+        onProgress('Loading PDF engine...', 10);
+        if (typeof pdfjsLib === 'undefined') {
+            await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        }
+
+        onProgress('Reading PDF pages...', 25);
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        let text = "";
+
+        const numPages = pdf.numPages;
+        for (let i = 1; i <= numPages; i++) {
+            onProgress(`Reading page ${i} of ${numPages}...`, 25 + Math.floor((i / numPages) * 50));
+            const page = await pdf.getPage(i);
+            const content = await page.getTextContent();
+            const pageText = content.items.map(item => item.str).join(" ");
+            text += pageText + "\n";
+        }
+
+        onProgress('Analyzing extracted text...', 90);
+        return text;
+    }
+
+    async function parseImageText(file, onProgress) {
+        onProgress('Loading OCR engine...', 10);
+        if (typeof Tesseract === 'undefined') {
+            await loadScript('https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/4.1.1/tesseract.min.js');
+        }
+
+        onProgress('Initializing recognition...', 25);
+        const result = await Tesseract.recognize(file, 'eng', {
+            logger: m => {
+                if (m.status === 'recognizing text') {
+                    onProgress(`Running OCR: ${Math.floor(m.progress * 100)}%`, 25 + Math.floor(m.progress * 60));
+                }
+            }
+        });
+
+        onProgress('Parsing receipt/statement text...', 95);
+        return result.data.text;
+    }
+
+    function extractTransactionsFromText(text) {
+        const lines = text.split('\n');
+        const transactions = [];
+
+        // Dates: e.g. 2026-05-25, 05/25/2026, May 25, 25-May-2026, 25.05.2026
+        const datePattern = /(?:\d{4}[-/]\d{1,2}[-/]\d{1,2}|\d{1,2}[-/.]\d{1,2}[-/.]\d{2,4}|(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]* \d{1,2}|\d{1,2} (?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*)/i;
+
+        // Amounts: e.g. $1,234.56, -45.00, 12.34
+        const amountPattern = /(?:[\$\€\£\¥]|rs\.?|inr)?\s*(-?\d{1,3}(?:,\d{3})*(?:\.\d{2}))\b/;
+
+        for (let line of lines) {
+            line = line.trim();
+            if (!line || line.length < 5) continue;
+
+            const amtMatch = line.match(amountPattern);
+            if (!amtMatch) continue;
+
+            const rawAmount = amtMatch[1].replace(/,/g, '');
+            const amount = Math.abs(parseFloat(rawAmount));
+            if (isNaN(amount) || amount === 0) continue;
+
+            let date = new Date().toISOString().split('T')[0]; // Default to today
+            const dateMatch = line.match(datePattern);
+            if (dateMatch) {
+                try {
+                    const parsedDate = new Date(dateMatch[0].replace(/\./g, '/'));
+                    if (!isNaN(parsedDate.getTime())) {
+                        date = parsedDate.toISOString().split('T')[0];
+                    }
+                } catch (e) {}
+            }
+
+            let type = 'expense';
+            if (line.toLowerCase().match(/(credit|received|deposit|salary|refund|inflow|\+)/i)) {
+                if (!line.toLowerCase().match(/(debit|payment|spent|\-)/i)) {
+                    type = 'income';
+                }
+            }
+
+            // Extract description by removing date and amount
+            let description = line
+                .replace(amtMatch[0], '')
+                .replace(dateMatch ? dateMatch[0] : '', '')
+                .replace(/(?:ref|uuid|tx|transaction|id|card|auth|pos|terminal|statement|bank|balance|chk|check)\b/gi, '')
+                .replace(/[-*#:=_]/g, ' ')
+                .replace(/\s+/g, ' ')
+                .trim();
+
+            if (description.length < 2) {
+                description = type === 'income' ? 'Ingested Income' : 'Ingested Expense';
+            }
+
+            // Category classification
+            let category = 'Other';
+            const lowercaseDesc = description.toLowerCase();
+            if (lowercaseDesc.match(/(grocery|mart|reliance|food|walmart|groceries|supermarket|vegetable|milk)/i)) {
+                category = 'Groceries';
+            } else if (lowercaseDesc.match(/(rent|landlord|flat|apartment|lease|maintenance)/i)) {
+                category = 'Rent';
+            } else if (lowercaseDesc.match(/(movie|netflix|ticket|cinema|fun|game|entertainment|play|show)/i)) {
+                category = 'Entertainment';
+            } else if (lowercaseDesc.match(/(transfer|upi|sent\s+to|paytm|gpay|ref|reference)/i)) {
+                category = 'Transfer';
+            } else if (lowercaseDesc.match(/(salary|paycheck|credit|salary|dividend|pension)/i)) {
+                category = 'Salary';
+            }
+
+            transactions.push({
+                description,
+                amount,
+                category,
+                type,
+                date
+            });
+        }
+
+        return transactions;
+    }
+
+    function handleFileSelect(event) {
         const file = event.target.files[0];
         if (!file) return;
 
+        selectedFile = file;
+
+        // Visual display updates
         document.getElementById('csv-filename').textContent = file.name;
         document.getElementById('csv-file-info').classList.remove('hidden');
 
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const text = e.target.result;
-            const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-            
-            if (lines.length <= 1) {
-                alert("CSV is empty or missing data rows.");
-                return;
-            }
+        // Update the dropzone text/icon
+        const ext = file.name.split('.').pop().toLowerCase();
+        let icon = 'upload_file';
+        if (ext === 'csv') icon = 'description';
+        else if (ext === 'pdf') icon = 'picture_as_pdf';
+        else if (['png', 'jpg', 'jpeg', 'gif', 'webp'].includes(ext)) icon = 'image';
 
-            parsedTransactions = [];
-            const header = lines[0].toLowerCase().split(',');
-            const descIdx = header.indexOf('description');
-            const amtIdx = header.indexOf('amount');
-            const catIdx = header.indexOf('category');
-            const typeIdx = header.indexOf('type');
-            const dateIdx = header.indexOf('date');
+        document.getElementById('upload-icon').textContent = icon;
+        document.getElementById('upload-text').textContent = file.name;
+        document.getElementById('upload-subtext').textContent = `${(file.size / 1024).toFixed(1)} KB • Click or drag to replace`;
 
-            if (descIdx === -1 || amtIdx === -1) {
-                alert("Invalid CSV format. Columns 'description' and 'amount' are required.");
-                return;
-            }
-
-            for (let i = 1; i < lines.length; i++) {
-                const cols = lines[i].split(',').map(c => c.trim().replace(/^["']|["']$/g, ''));
-                if (cols.length < 2) continue;
-
-                const amount = parseFloat(cols[amtIdx]);
-                if (isNaN(amount) || amount <= 0) continue;
-
-                parsedTransactions.push({
-                    description: cols[descIdx] || 'Batch Transaction',
-                    amount: amount,
-                    category: catIdx !== -1 && cols[catIdx] ? cols[catIdx] : 'Other',
-                    type: typeIdx !== -1 && cols[typeIdx]?.toLowerCase() === 'income' ? 'income' : 'expense',
-                    date: dateIdx !== -1 && cols[dateIdx] ? cols[dateIdx] : new Date().toISOString()
-                });
-            }
-
-            if (parsedTransactions.length > 0) {
-                const btn = document.getElementById('btn-upload-csv');
-                btn.disabled = false;
-                btn.classList.remove('opacity-50', 'cursor-not-allowed');
-                btn.innerHTML = `<span class="material-symbols-outlined text-[16px]">upload</span> Ingest ${parsedTransactions.length} Transactions`;
-            }
-        };
-
-        reader.readAsText(file);
+        // Enable action button
+        const btn = document.getElementById('btn-upload-csv');
+        btn.disabled = false;
+        btn.classList.remove('opacity-50', 'cursor-not-allowed');
+        btn.innerHTML = `<span class="material-symbols-outlined text-[16px]">analytics</span> Analyze & Ingest`;
     }
 
-    async function processCSVUpload() {
-        if (parsedTransactions.length === 0) return;
+    function getFileBase64(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => {
+                const base64String = reader.result.split(',')[1];
+                resolve(base64String);
+            };
+            reader.onerror = error => reject(error);
+        });
+    }
+
+    async function processSelectedFile() {
+        if (!selectedFile) return;
 
         const btn = document.getElementById('btn-upload-csv');
+        const progressContainer = document.getElementById('file-ingest-progress');
+        const progressStatus = document.getElementById('progress-status');
+        const progressBarFill = document.getElementById('progress-bar-fill');
+        const progressPercentage = document.getElementById('progress-percentage');
+
+        btn.disabled = true;
+        btn.classList.add('opacity-50', 'cursor-not-allowed');
+        progressContainer.classList.remove('hidden');
+
+        const updateProgress = (status, percent) => {
+            progressStatus.textContent = status;
+            progressBarFill.style.width = `${percent}%`;
+            progressPercentage.textContent = `${percent}%`;
+        };
+
+        const ext = selectedFile.name.split('.').pop().toLowerCase();
+        parsedTransactions = [];
+
+        try {
+            if (ext === 'csv') {
+                updateProgress('Reading CSV file...', 20);
+                const reader = new FileReader();
+                reader.onload = async function(e) {
+                    const text = e.target.result;
+                    updateProgress('Analyzing CSV with Gemini AI...', 50);
+                    try {
+                        const res = await fetch('/transactions/parse-file', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ text })
+                        });
+                        const data = await res.json();
+                        if (!data.success) throw new Error(data.error || "Gemini parsing failed");
+
+                        parsedTransactions = data.transactions;
+                        updateProgress('Done!', 100);
+                        setTimeout(() => {
+                            progressContainer.classList.add('hidden');
+                            btn.disabled = false;
+                            btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                            if (parsedTransactions.length > 0) {
+                                showIngestReview(parsedTransactions);
+                            } else {
+                                alert('No valid transactions found in CSV file.');
+                            }
+                        }, 500);
+                    } catch (err) {
+                        alert("Gemini CSV parsing error: " + err.message);
+                        progressContainer.classList.add('hidden');
+                        btn.disabled = false;
+                        btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    }
+                };
+                reader.readAsText(selectedFile);
+                return;
+
+            } else if (ext === 'pdf') {
+                updateProgress('Reading PDF text layers...', 20);
+                const text = await parsePDFText(selectedFile, (status, percent) => {
+                    updateProgress(status, 10 + Math.floor(percent * 0.4));
+                });
+                
+                updateProgress('Analyzing PDF with Gemini AI...', 60);
+                const res = await fetch('/transactions/parse-file', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text })
+                });
+                const data = await res.json();
+                if (!data.success) throw new Error(data.error || "Gemini parsing failed");
+
+                parsedTransactions = data.transactions;
+
+            } else if (['png', 'jpg', 'jpeg', 'webp', 'gif'].includes(ext)) {
+                updateProgress('Converting image data...', 20);
+                const base64 = await getFileBase64(selectedFile);
+                let mimeType = selectedFile.type || 'image/jpeg';
+                
+                updateProgress('Analyzing image visually with Gemini AI...', 50);
+                const res = await fetch('/transactions/parse-file', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ base64, mimeType })
+                });
+                const data = await res.json();
+                if (!data.success) throw new Error(data.error || "Gemini parsing failed");
+
+                parsedTransactions = data.transactions;
+
+            } else {
+                alert('Unsupported file format. Please upload CSV, PDF or Image.');
+                btn.disabled = false;
+                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                progressContainer.classList.add('hidden');
+                return;
+            }
+
+            updateProgress('Done!', 100);
+            setTimeout(() => {
+                progressContainer.classList.add('hidden');
+                btn.disabled = false;
+                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                if (parsedTransactions.length > 0) {
+                    showIngestReview(parsedTransactions);
+                } else {
+                    alert('Could not extract any transactions from this document. Please verify layout or try manual entry.');
+                }
+            }, 500);
+
+        } catch (err) {
+            console.error("Error during document parsing:", err);
+            alert("Error processing file: " + err.message);
+            updateProgress('Failed', 0);
+            setTimeout(() => {
+                progressContainer.classList.add('hidden');
+                btn.disabled = false;
+                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }, 1000);
+        }
+    }
+
+
+    function showIngestReview(transactions) {
+        const modal = document.getElementById('ingestReviewModal');
+        const card = document.getElementById('ingestReviewCard');
+        
+        showReviewSubtitle(transactions.length);
+        renderReviewRows(transactions);
+        
+        modal.classList.remove('opacity-0', 'pointer-events-none');
+        card.classList.remove('scale-95');
+        card.classList.add('scale-100');
+    }
+
+    function showReviewSubtitle(count) {
+        const subtitle = document.getElementById('ingestReviewSubtitle');
+        subtitle.textContent = `We found ${count} transaction(s). Please review and tweak fields if any OCR/parsing was off.`;
+    }
+
+    function dismissIngestReview() {
+        const modal = document.getElementById('ingestReviewModal');
+        const card = document.getElementById('ingestReviewCard');
+        modal.classList.add('opacity-0', 'pointer-events-none');
+        card.classList.remove('scale-100');
+        card.classList.add('scale-95');
+    }
+
+    function renderReviewRows(transactions) {
+        const body = document.getElementById('ingestReviewTableBody');
+        const summary = document.getElementById('ingestModalSummary');
+        
+        body.innerHTML = transactions.map((t, idx) => `
+            <tr id="review-row-${idx}" class="hover:bg-surface-container/30 transition-colors">
+                <td class="py-2 px-1">
+                    <input type="date" value="${t.date}" class="w-full bg-surface-container-low border border-outline-variant/30 rounded px-2 py-1 text-xs text-on-surface focus:outline-none focus:border-primary" onchange="updateReviewField(${idx}, 'date', this.value)" />
+                </td>
+                <td class="py-2 px-1">
+                    <input type="text" value="${escapeHtml(t.description)}" class="w-full bg-surface-container-low border border-outline-variant/30 rounded px-2 py-1 text-xs text-on-surface focus:outline-none focus:border-primary font-medium" onchange="updateReviewField(${idx}, 'description', this.value)" />
+                </td>
+                <td class="py-2 px-1">
+                    <select class="w-full bg-surface-container-low border border-outline-variant/30 rounded px-2 py-1 text-xs text-on-surface focus:outline-none focus:border-primary" onchange="updateReviewField(${idx}, 'category', this.value)">
+                        <option value="Groceries" ${t.category === 'Groceries' ? 'selected' : ''}>Groceries</option>
+                        <option value="Rent" ${t.category === 'Rent' ? 'selected' : ''}>Rent</option>
+                        <option value="Entertainment" ${t.category === 'Entertainment' ? 'selected' : ''}>Entertainment</option>
+                        <option value="Transfer" ${t.category === 'Transfer' ? 'selected' : ''}>Transfer</option>
+                        <option value="Salary" ${t.category === 'Salary' ? 'selected' : ''}>Salary</option>
+                        <option value="Other" ${t.category === 'Other' ? 'selected' : ''}>Other</option>
+                    </select>
+                </td>
+                <td class="py-2 px-1">
+                    <select class="w-full bg-surface-container-low border border-outline-variant/30 rounded px-2 py-1 text-xs text-on-surface focus:outline-none focus:border-primary" onchange="updateReviewField(${idx}, 'type', this.value)">
+                        <option value="expense" ${t.type === 'expense' ? 'selected' : ''}>Expense</option>
+                        <option value="income" ${t.type === 'income' ? 'selected' : ''}>Income</option>
+                    </select>
+                </td>
+                <td class="py-2 px-1 text-right">
+                    <input type="number" step="0.01" min="0.01" value="${t.amount.toFixed(2)}" class="w-24 text-right bg-surface-container-low border border-outline-variant/30 rounded px-2 py-1 text-xs text-on-surface focus:outline-none focus:border-primary" onchange="updateReviewField(${idx}, 'amount', parseFloat(this.value) || 0)" />
+                </td>
+                <td class="py-2 px-1 text-center">
+                    <button type="button" class="text-on-surface-variant hover:text-error transition-colors p-1" onclick="deleteReviewRow(${idx})" title="Remove item">
+                        <span class="material-symbols-outlined text-sm">delete</span>
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+
+        summary.textContent = `Total: ${transactions.length} transactions`;
+    }
+
+    function updateReviewField(idx, field, value) {
+        if (parsedTransactions[idx]) {
+            parsedTransactions[idx][field] = value;
+        }
+    }
+
+    function deleteReviewRow(idx) {
+        parsedTransactions.splice(idx, 1);
+        renderReviewRows(parsedTransactions);
+        showReviewSubtitle(parsedTransactions.length);
+    }
+
+    function escapeHtml(str) {
+        return str
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    async function confirmIngestUpload() {
+        if (parsedTransactions.length === 0) {
+            alert("No transactions to import!");
+            return;
+        }
+
+        const btn = document.getElementById('btn-confirm-ingest');
         btn.disabled = true;
         btn.innerHTML = `<span class="material-symbols-outlined text-[16px] animate-spin">sync</span> Ingesting records...`;
 
@@ -609,6 +1048,8 @@
 
             const data = await res.json();
             if (data.success) {
+                dismissIngestReview();
+                
                 const toast = document.createElement('div');
                 toast.className = 'fixed top-4 right-4 z-50 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg slide-in font-semibold';
                 toast.textContent = `Successfully processed and queued ${data.count} transactions!`;
@@ -622,10 +1063,10 @@
                 throw new Error(data.error || "Server responded with failure");
             }
         } catch (err) {
-            console.error("[CSV Ingest] Failed:", err);
-            alert("Failed to process batch upload: " + err.message);
+            console.error("[Ingest Upload] Failed:", err);
+            alert("Failed to ingest transactions: " + err.message);
             btn.disabled = false;
-            btn.innerHTML = `<span class="material-symbols-outlined text-[16px]">upload</span> Process Batch Upload`;
+            btn.innerHTML = `<span class="material-symbols-outlined text-[16px]">done_all</span> Ingest Verified Records`;
         }
     }
 

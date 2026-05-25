@@ -26,9 +26,9 @@ app.set('views', path.join(__dirname, 'server', 'views'));
 
 // --- Middleware ---
 app.use(express.static(path.join(__dirname, 'server', 'public')));
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(methodOverride('_method'))
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
 
 // --- Sessions ---
 app.use(session({
