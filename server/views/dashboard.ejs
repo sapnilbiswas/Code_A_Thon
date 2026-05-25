@@ -125,7 +125,7 @@
                         </div>
                     </div>
                     <% if (mIncome > 0) { %>
-                    <div class="w-full md:w-48">
+                    <div class="w-full md:w-44">
                         <p class="text-xs text-on-surface-variant mb-2">Budget Utilization</p>
                         <div class="w-full bg-surface-container-high rounded-full h-2.5">
                             <div class="h-2.5 rounded-full transition-all duration-500 <%= mExpense/mIncome >= 1 ? 'bg-error' : mExpense/mIncome >= 0.8 ? 'bg-tertiary' : 'bg-green-500' %>" style="width: <%= Math.min(100, Math.round((mExpense/mIncome)*100)) %>%"></div>
@@ -133,6 +133,55 @@
                         <p class="text-xs text-on-surface-variant mt-1"><%= Math.min(100, Math.round((mExpense/mIncome)*100)) %>% of income spent</p>
                     </div>
                     <% } %>
+
+                    <!-- AI Spending Forecast Projection -->
+                    <%
+                        const mForecast = (typeof projectedExpense !== 'undefined') ? projectedExpense : 0;
+                        const mLimit = (typeof totalBudgetLimit !== 'undefined') ? totalBudgetLimit : 0;
+                        const overForecast = mLimit > 0 && mForecast > mLimit;
+                    %>
+                    <div class="w-full md:w-52 p-4 rounded-xl bg-surface-container-low border border-outline-variant/10">
+                        <div class="flex justify-between items-center mb-1">
+                            <p class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">AI Forecast</p>
+                            <span class="material-symbols-outlined text-[16px] text-primary animate-pulse">online_prediction</span>
+                        </div>
+                        <h4 class="font-title-md text-title-md <%= overForecast ? 'text-error font-bold' : 'text-on-background' %>">
+                            $<%= mForecast.toLocaleString() %>
+                        </h4>
+                        <div class="w-full bg-surface-container rounded-full h-1.5 mt-2">
+                            <div class="h-1.5 rounded-full <%= overForecast ? 'bg-error' : 'bg-green-500' %>" style="width: <%= mLimit > 0 ? Math.min(100, Math.round((mForecast/mLimit)*100)) : 50 %>%"></div>
+                        </div>
+                        <p class="text-[10px] text-on-surface-variant mt-1.5">
+                            <%= mLimit > 0 ? `${Math.round((mForecast/mLimit)*100)}% of limit ($${mLimit.toLocaleString()})` : 'Based on spending velocity' %>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Financial Advisor Widget -->
+            <div class="glass-card rounded-xl p-6 mb-section-gap relative overflow-hidden tilt-card" onmouseleave="resetTilt(this)" onmousemove="tilt(event, this)">
+                <div class="absolute inset-0 bg-gradient-to-r from-primary-container/10 via-transparent to-tertiary-container/10 pointer-events-none"></div>
+                <div class="relative z-10">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-primary font-bold animate-pulse text-[24px]">psychology</span>
+                            <h3 class="font-title-md text-title-md text-on-background">FraudGuard AI Smart Advisor</h3>
+                        </div>
+                        <span class="text-[10px] bg-primary-container/20 text-primary-container px-2.5 py-1 rounded font-bold uppercase tracking-wider">Gemini Pro Enabled</span>
+                    </div>
+
+                    <!-- Loader / Advice List -->
+                    <div id="ai-advisor-loading" class="flex items-center gap-2 py-4">
+                        <svg class="animate-spin h-5 w-5 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span class="text-sm text-on-surface-variant font-medium">Formulating personalized financial recommendations...</span>
+                    </div>
+
+                    <div id="ai-advisor-content" class="hidden grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
+                        <!-- Recommendations injected here dynamically via AJAX -->
+                    </div>
                 </div>
             </div>
 
@@ -355,6 +404,49 @@
             setTimeout(() => toast.remove(), 300);
         }, 8000);
     }
+
+    // Fetch and load AI Advisor Insights dynamically
+    async function loadAIAdvisor() {
+        const loadingEl = document.getElementById('ai-advisor-loading');
+        const contentEl = document.getElementById('ai-advisor-content');
+        if (!loadingEl || !contentEl) return;
+
+        try {
+            const res = await fetch('/advice/insights');
+            const data = await res.json();
+            
+            if (data.success && data.advice && data.advice.length > 0) {
+                loadingEl.classList.add('hidden');
+                contentEl.innerHTML = '';
+                
+                data.advice.forEach(tip => {
+                    const tipCard = document.createElement('div');
+                    tipCard.className = 'flex gap-3 items-start p-4 rounded-lg bg-surface-container/50 border border-outline-variant/10 hover:border-primary/20 transition-all duration-300';
+                    tipCard.innerHTML = `
+                        <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
+                            <span class="material-symbols-outlined text-[18px]">wb_incandescent</span>
+                        </div>
+                        <div>
+                            <p class="text-sm text-on-surface font-semibold">${tip}</p>
+                        </div>
+                    `;
+                    contentEl.appendChild(tipCard);
+                });
+                contentEl.classList.remove('hidden');
+            } else {
+                throw new Error("Invalid response format");
+            }
+        } catch (err) {
+            console.error("[Advisor] Failed loading AI tips:", err);
+            loadingEl.innerHTML = `
+                <span class="material-symbols-outlined text-error text-[20px]">error</span>
+                <span class="text-sm text-error font-medium">Failed to compile AI insights. Please refresh the page to try again.</span>
+            `;
+        }
+    }
+    
+    // Launch on page load
+    document.addEventListener('DOMContentLoaded', loadAIAdvisor);
 
 </script>
 <script src="/js/sse.js"></script>

@@ -81,6 +81,11 @@ router.get('/dashboard', async (req, res) => {
         await User.findByIdAndUpdate(userId, { overallHealthScore });
         req.user.overallHealthScore = overallHealthScore; // Update session value
 
+        // 4.5. AI Forecasting Projection Engine
+        const activeDays = Math.max(1, Math.round((now - monthStart) / (1000 * 60 * 60 * 24)));
+        const projectedExpense = Math.round((monthlyExpenseTotal / activeDays) * 30);
+        const totalBudgetLimit = budgets.reduce((sum, b) => sum + b.limitAmount, 0);
+
         // 5. Gather totals object for template
         const totals = {
             processedVolume,
@@ -178,7 +183,18 @@ router.get('/dashboard', async (req, res) => {
             if (riskVectors.otherThreatsPercent < 0) riskVectors.otherThreatsPercent = 0;
         }
 
-        res.render('dashboard', { totals, overallHealthScore, weeklyChartData, riskVectors, monthlyIncomeTotal, monthlyExpenseTotal, monthlySavings, savingsRate });
+        res.render('dashboard', { 
+            totals, 
+            overallHealthScore, 
+            weeklyChartData, 
+            riskVectors, 
+            monthlyIncomeTotal, 
+            monthlyExpenseTotal, 
+            monthlySavings, 
+            savingsRate,
+            projectedExpense,
+            totalBudgetLimit
+        });
     } catch (e) {
         console.error("Error rendering dashboard:", e);
         res.status(500).send("Error rendering dashboard");

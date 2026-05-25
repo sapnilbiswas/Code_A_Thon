@@ -52,6 +52,50 @@
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter w-full">
             <!-- New Transaction Entry Card (Left Column) -->
             <div class="lg:col-span-4 flex flex-col gap-gutter w-full">
+                <!-- AI Quick Ingest Card -->
+                <div class="glass-card rounded-xl p-container-padding relative overflow-hidden">
+                    <div class="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent pointer-events-none"></div>
+                    <h2 class="font-title-md text-title-md text-on-surface mb-3 flex items-center gap-2 relative z-10">
+                        <span class="material-symbols-outlined text-primary animate-pulse">input_circle</span>
+                        AI Quick Ingest (SMS / UPI)
+                    </h2>
+                    <p class="text-xs text-on-surface-variant mb-4">Paste your bank SMS or UPI notification to auto-populate the transaction form instantly!</p>
+                    <div class="flex flex-col gap-3">
+                        <textarea id="quick-ingest-text" rows="2" class="w-full input-premium rounded-lg px-3 py-2 text-xs text-on-surface placeholder-outline focus:ring-0" placeholder="e.g. Sent $45.00 to Reliance Mart for Groceries on 2026-05-25"></textarea>
+                        <button onclick="parseQuickIngest()" type="button" class="btn-primary text-white text-xs font-semibold py-2.5 rounded-lg flex items-center justify-center gap-1">
+                            <span class="material-symbols-outlined text-[16px]">psychology</span>
+                            Analyze & Populate Form
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Batch Statement Upload Card -->
+                <div class="glass-card rounded-xl p-container-padding relative overflow-hidden mt-gutter">
+                    <div class="absolute inset-0 bg-gradient-to-r from-tertiary-container/5 to-transparent pointer-events-none"></div>
+                    <h2 class="font-title-md text-title-md text-on-surface mb-3 flex items-center gap-2 relative z-10">
+                        <span class="material-symbols-outlined text-tertiary animate-pulse">cloud_upload</span>
+                        Batch Statement Ingest
+                    </h2>
+                    <p class="text-xs text-on-surface-variant mb-4">Upload a bank statement CSV to dynamically analyze and ingest multiple transactions instantly!</p>
+                    
+                    <div class="flex flex-col gap-3">
+                        <div class="border-2 border-dashed border-outline-variant/30 rounded-lg p-4 text-center cursor-pointer hover:border-primary/50 transition-colors relative" onclick="document.getElementById('csv-file-input').click()">
+                            <span class="material-symbols-outlined text-outline text-[32px] mb-1">upload_file</span>
+                            <p class="text-[11px] text-on-surface font-semibold">Click to select bank statement CSV</p>
+                            <p class="text-[9px] text-on-surface-variant mt-0.5">Format: description, amount, category, type, date</p>
+                            <input id="csv-file-input" type="file" accept=".csv" class="hidden" onchange="handleCSVFileSelect(event)"/>
+                        </div>
+                        <div id="csv-file-info" class="hidden text-[10px] text-primary font-semibold flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[14px]">check_circle</span>
+                            <span id="csv-filename">filename.csv</span>
+                        </div>
+                        <button id="btn-upload-csv" onclick="processCSVUpload()" type="button" disabled class="btn-primary text-white text-xs font-semibold py-2.5 rounded-lg flex items-center justify-center gap-1 opacity-50 cursor-not-allowed">
+                            <span class="material-symbols-outlined text-[16px]">upload</span>
+                            Process Batch Upload
+                        </button>
+                    </div>
+                </div>
+
                 <div class="glass-card rounded-xl p-container-padding">
                     <h2 class="font-title-md text-title-md text-on-surface mb-6 flex items-center gap-2">
                         <span class="material-symbols-outlined text-primary">add_circle</span>
@@ -399,6 +443,180 @@
     function toggleDrawer(id) {
         const drawer = document.getElementById("drawer-" + id);
         if (drawer) drawer.classList.toggle("hidden");
+    }
+
+    function parseQuickIngest() {
+        const text = document.getElementById('quick-ingest-text').value;
+        if (!text) {
+            alert('Please paste or write some notification text first.');
+            return;
+        }
+
+        // 1. Amount Extraction Regex
+        let amount = null;
+        const amountRegexes = [
+            /(?:inr|rs\.?|\$)\s*(\d+(?:\.\d{1,2})?)/i,
+            /(?:spent|paid|sent|received)\s+(?:inr|rs\.?|\$)?\s*(\d+(?:\.\d{1,2})?)/i,
+            /(\d+(?:\.\d{1,2})?)\s*(?:usd|inr|rs)/i,
+            /(\d+(?:\.\d{1,2})?)/
+        ];
+
+        for (const regex of amountRegexes) {
+            const match = text.match(regex);
+            if (match && match[1]) {
+                amount = parseFloat(match[1]);
+                break;
+            }
+        }
+
+        // 2. Transaction Type Extraction
+        let type = 'expense';
+        if (text.toLowerCase().match(/(received|credited|deposit|salary|refund|inflow)/i)) {
+            type = 'income';
+        }
+
+        // 3. Category Extraction
+        let category = 'Other';
+        const lowercaseText = text.toLowerCase();
+        if (lowercaseText.match(/(grocery|mart|reliance|food|walmart|groceries|supermarket|vegetable|milk)/i)) {
+            category = 'Groceries';
+        } else if (lowercaseText.match(/(rent|landlord|flat|apartment|lease|maintenance)/i)) {
+            category = 'Rent';
+        } else if (lowercaseText.match(/(movie|netflix|ticket|cinema|fun|game|entertainment|play|show)/i)) {
+            category = 'Entertainment';
+        } else if (lowercaseText.match(/(transfer|upi|sent\s+to|paytm|gpay|ref|reference)/i)) {
+            category = 'Transfer';
+        } else if (lowercaseText.match(/(salary|paycheck|credit|salary|dividend|pension)/i)) {
+            category = 'Salary';
+        }
+
+        // 4. Description/Merchant Extraction
+        let description = 'Quick Inflow';
+        if (type === 'expense') {
+            description = 'Quick Purchase';
+            const merchantMatch = text.match(/(?:at|on|to|for)\s+([A-Za-z0-9\s]+?)(?:\s+(?:on|at|ref|date|inr|rs|\$)|$)/i);
+            if (merchantMatch && merchantMatch[1]) {
+                const cleanMerchant = merchantMatch[1].trim();
+                if (cleanMerchant.length > 2 && !cleanMerchant.match(/^\d+$/)) {
+                    description = cleanMerchant;
+                }
+            }
+        } else {
+            const payerMatch = text.match(/(?:from|by)\s+([A-Za-z0-9\s]+?)(?:\s+(?:on|at|ref|date|inr|rs|\$)|$)/i);
+            if (payerMatch && payerMatch[1]) {
+                description = payerMatch[1].trim();
+            }
+        }
+
+        // Populate fields
+        if (amount) {
+            document.getElementById('amount').value = amount.toFixed(2);
+        }
+        document.getElementById('type').value = type;
+        document.getElementById('category').value = category;
+        document.getElementById('description').value = description;
+
+        // Visual flash success
+        const successToast = document.createElement('div');
+        successToast.className = 'fixed top-4 right-4 z-50 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg slide-in';
+        successToast.innerHTML = `Form Populated! Analyzed: <strong>${description}</strong> ($${amount ? amount.toFixed(2) : '0.00'})`;
+        document.body.appendChild(successToast);
+        setTimeout(() => successToast.remove(), 4000);
+    }
+
+    let parsedTransactions = [];
+
+    function handleCSVFileSelect(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        document.getElementById('csv-filename').textContent = file.name;
+        document.getElementById('csv-file-info').classList.remove('hidden');
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const text = e.target.result;
+            const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+            
+            if (lines.length <= 1) {
+                alert("CSV is empty or missing data rows.");
+                return;
+            }
+
+            parsedTransactions = [];
+            const header = lines[0].toLowerCase().split(',');
+            const descIdx = header.indexOf('description');
+            const amtIdx = header.indexOf('amount');
+            const catIdx = header.indexOf('category');
+            const typeIdx = header.indexOf('type');
+            const dateIdx = header.indexOf('date');
+
+            if (descIdx === -1 || amtIdx === -1) {
+                alert("Invalid CSV format. Columns 'description' and 'amount' are required.");
+                return;
+            }
+
+            for (let i = 1; i < lines.length; i++) {
+                const cols = lines[i].split(',').map(c => c.trim().replace(/^["']|["']$/g, ''));
+                if (cols.length < 2) continue;
+
+                const amount = parseFloat(cols[amtIdx]);
+                if (isNaN(amount) || amount <= 0) continue;
+
+                parsedTransactions.push({
+                    description: cols[descIdx] || 'Batch Transaction',
+                    amount: amount,
+                    category: catIdx !== -1 && cols[catIdx] ? cols[catIdx] : 'Other',
+                    type: typeIdx !== -1 && cols[typeIdx]?.toLowerCase() === 'income' ? 'income' : 'expense',
+                    date: dateIdx !== -1 && cols[dateIdx] ? cols[dateIdx] : new Date().toISOString()
+                });
+            }
+
+            if (parsedTransactions.length > 0) {
+                const btn = document.getElementById('btn-upload-csv');
+                btn.disabled = false;
+                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                btn.innerHTML = `<span class="material-symbols-outlined text-[16px]">upload</span> Ingest ${parsedTransactions.length} Transactions`;
+            }
+        };
+
+        reader.readAsText(file);
+    }
+
+    async function processCSVUpload() {
+        if (parsedTransactions.length === 0) return;
+
+        const btn = document.getElementById('btn-upload-csv');
+        btn.disabled = true;
+        btn.innerHTML = `<span class="material-symbols-outlined text-[16px] animate-spin">sync</span> Ingesting records...`;
+
+        try {
+            const res = await fetch('/transactions/upload', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ transactions: parsedTransactions })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                const toast = document.createElement('div');
+                toast.className = 'fixed top-4 right-4 z-50 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg slide-in font-semibold';
+                toast.textContent = `Successfully processed and queued ${data.count} transactions!`;
+                document.body.appendChild(toast);
+                
+                setTimeout(() => {
+                    toast.remove();
+                    window.location.reload();
+                }, 1500);
+            } else {
+                throw new Error(data.error || "Server responded with failure");
+            }
+        } catch (err) {
+            console.error("[CSV Ingest] Failed:", err);
+            alert("Failed to process batch upload: " + err.message);
+            btn.disabled = false;
+            btn.innerHTML = `<span class="material-symbols-outlined text-[16px]">upload</span> Process Batch Upload`;
+        }
     }
 
     document.addEventListener('mousemove', (e) => {

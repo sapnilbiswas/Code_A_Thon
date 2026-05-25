@@ -71,6 +71,7 @@ const dashboardRoutes = require('./server/routes/dashboard');
 const budgetRoutes = require('./server/routes/budget');
 const savingsRoutes = require('./server/routes/savings');
 const reportRoutes = require('./server/routes/report');
+const adviceRoutes = require('./server/routes/advice');
 const { isLoggedIn } = require('./server/middleware/auth');
 
 app.use('/auth', authRoutes);
@@ -78,6 +79,7 @@ app.use('/transactions', transactionsRoutes);
 app.use('/budgets', budgetRoutes);
 app.use('/savings', savingsRoutes);
 app.use('/reports', reportRoutes);
+app.use('/advice', adviceRoutes);
 app.use('/', dashboardRoutes);
 
 app.get('/', (req, res) => {

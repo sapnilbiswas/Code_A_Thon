@@ -141,4 +141,44 @@ router.delete('/:id', async (req, res) => {
     }
 });
 
+// --- Batch Upload Transactions (CSV) ---
+router.post('/upload', async (req, res) => {
+    try {
+        const { transactions } = req.body;
+        if (!transactions || !Array.isArray(transactions)) {
+            return res.status(400).json({ success: false, error: "Invalid transactions array" });
+        }
+
+        const agenda = req.app.get('agenda');
+        const savedTxns = [];
+
+        for (const t of transactions) {
+            const amount = parseFloat(t.amount);
+            if (isNaN(amount) || amount <= 0) continue;
+
+            const txn = new Transaction({
+                user: req.user._id,
+                description: t.description || 'Batch Upload',
+                amount,
+                type: t.type === 'income' ? 'income' : 'expense',
+                category: t.category || 'Other',
+                date: t.date ? new Date(t.date) : new Date()
+            });
+
+            await txn.save();
+            savedTxns.push(txn);
+
+            // Dispatch background fraud detection job
+            if (agenda) {
+                await agenda.now('detect-fraud', { transactionId: txn._id });
+            }
+        }
+
+        res.json({ success: true, count: savedTxns.length });
+    } catch (e) {
+        console.error("Error batch uploading transactions:", e);
+        res.status(500).json({ success: false, error: "Server error during batch upload" });
+    }
+});
+
 module.exports = router;
