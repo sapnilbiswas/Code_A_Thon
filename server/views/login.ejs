@@ -147,27 +147,13 @@
 
         geometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
         
-        // Create a custom glowing material for the nodes
-        const textureCanvas = document.createElement('canvas');
-        textureCanvas.width = 64;
-        textureCanvas.height = 64;
-        const ctx = textureCanvas.getContext('2d');
-        ctx.font = 'bold 48px sans-serif';
-        ctx.fillStyle = '#FFFFFF';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('₹', 32, 36);
-        
-        const symbolTexture = new THREE.CanvasTexture(textureCanvas);
-
+        // Revert to original glowing nodes for the outer network
         const material = new THREE.PointsMaterial({
-            size: 3.5, // Increased size to make the symbol readable
+            size: 0.6,
             color: 0xFF6B35, // Brand Orange
             transparent: true,
-            opacity: 0.9,
-            map: symbolTexture,
-            blending: THREE.AdditiveBlending,
-            depthWrite: false
+            opacity: 0.8,
+            blending: THREE.AdditiveBlending
         });
 
         const particlesMesh = new THREE.Points(geometry, material);
@@ -182,7 +168,35 @@
             opacity: 0.15
         });
         const coreMesh = new THREE.Mesh(coreGeom, coreMat);
-        scene.add(coreMesh);
+
+        // Create a large CanvasTexture for the center Rupee symbol
+        const rupeeCanvas = document.createElement('canvas');
+        rupeeCanvas.width = 256;
+        rupeeCanvas.height = 256;
+        const ctx = rupeeCanvas.getContext('2d');
+        ctx.font = 'bold 180px sans-serif';
+        ctx.fillStyle = '#FF6B35'; // Brand Orange
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.shadowColor = '#FF6B35';
+        ctx.shadowBlur = 20;
+        ctx.fillText('₹', 128, 140);
+        
+        const rupeeTexture = new THREE.CanvasTexture(rupeeCanvas);
+        const spriteMaterial = new THREE.SpriteMaterial({ 
+            map: rupeeTexture, 
+            color: 0xffffff,
+            transparent: true,
+            blending: THREE.AdditiveBlending 
+        });
+        const rupeeSprite = new THREE.Sprite(spriteMaterial);
+        rupeeSprite.scale.set(16, 16, 1);
+        
+        // Group them so they scale/pulse together
+        const coreGroup = new THREE.Group();
+        coreGroup.add(coreMesh);
+        coreGroup.add(rupeeSprite);
+        scene.add(coreGroup);
 
         // Add lighting
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
@@ -208,12 +222,12 @@
             particlesMesh.rotation.y = elapsedTime * 0.08;
             particlesMesh.rotation.x = elapsedTime * 0.04;
             
-            coreMesh.rotation.y = elapsedTime * -0.2;
-            coreMesh.rotation.x = elapsedTime * -0.1;
+            coreGroup.rotation.y = elapsedTime * -0.2;
+            coreGroup.rotation.x = elapsedTime * -0.1;
 
             // Pulsating core
             const scale = 1 + Math.sin(elapsedTime * 2) * 0.05;
-            coreMesh.scale.set(scale, scale, scale);
+            coreGroup.scale.set(scale, scale, scale);
 
             // Transition Logic: Fly through the network
             if (isTransitioning) {
