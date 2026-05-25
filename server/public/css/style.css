@@ -619,85 +619,40 @@ body.preloader-active #loginCard {
 }
 
 /* ============================================================
-   HEAVY 3D PAGE TRANSITIONS & OVERLAYS
+   CINEMATIC PAGE TRANSITIONS (inout.hackncs.in inspired)
    ============================================================ */
 
-/* The overlay wrapper */
-.heavy-transition-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    z-index: 99999;
-    pointer-events: none;
-    display: flex;
+.cinematic-enter {
+    animation: cinematicFadeIn 1.2s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-/* Individual massive columns/curtains */
-.heavy-transition-col {
-    position: absolute;
-    top: 0;
-    width: 20.5%; /* slight overlap to prevent gaps */
-    height: 100%;
-    background: #ff6b35; /* Brand orange heavy slam */
-    transform-origin: top;
-    /* Start position: Covering the screen */
-    transform: scaleY(1);
-    transition: transform 0.6s cubic-bezier(0.85, 0, 0.15, 1);
-    box-shadow: inset 0 0 50px rgba(0,0,0,0.2);
-}
-
-/* Optional alternating colors for a digital stripe effect */
-.heavy-transition-col:nth-child(even) {
-    background: #ab3500;
-}
-
-/* When entering a page, pull curtains UP */
-.heavy-transition-overlay.curtains-up .heavy-transition-col {
-    transform-origin: bottom;
-    transform: scaleY(0);
-}
-
-/* When exiting a page, drop curtains DOWN */
-.heavy-transition-overlay.curtains-down .heavy-transition-col {
-    transform-origin: top;
-    transform: scaleY(1);
-}
-
-/* Heavy 3D Main Content Entrance */
-.heavy-enter-active {
-    animation: heavyDeepZoomIn 1s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-@keyframes heavyDeepZoomIn {
+@keyframes cinematicFadeIn {
     0% {
         opacity: 0;
-        transform: perspective(1500px) translateZ(-500px) rotateX(20deg) translateY(100px);
-        filter: blur(20px);
+        filter: blur(15px);
+        transform: scale(1.04) translateY(20px);
     }
     100% {
         opacity: 1;
-        transform: perspective(1500px) translateZ(0) rotateX(0deg) translateY(0);
         filter: blur(0px);
+        transform: scale(1) translateY(0);
     }
 }
 
-/* Heavy 3D Main Content Exit */
-.heavy-exit-active {
-    animation: heavyFallBack 0.8s cubic-bezier(0.85, 0, 0.15, 1) both;
+.cinematic-exit {
+    animation: cinematicFadeOut 0.8s cubic-bezier(0.76, 0, 0.24, 1) both;
 }
 
-@keyframes heavyFallBack {
+@keyframes cinematicFadeOut {
     0% {
         opacity: 1;
-        transform: perspective(1500px) translateZ(0) rotateX(0deg) scale(1);
         filter: blur(0px);
+        transform: scale(1) translateY(0);
     }
     100% {
         opacity: 0;
-        transform: perspective(1500px) translateZ(-800px) rotateX(-25deg) scale(0.8);
-        filter: blur(30px);
+        filter: blur(15px);
+        transform: scale(0.96) translateY(-20px);
     }
 }
 
