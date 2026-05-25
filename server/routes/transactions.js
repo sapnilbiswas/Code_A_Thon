@@ -98,6 +98,13 @@ router.post('/', async (req, res) => {
         });
 
         await txn.save();
+
+        // Queue background fraud detection job (Phase 5/6 async path)
+        const agenda = req.app.get('agenda');
+        if (agenda) {
+            await agenda.now('detect-fraud', { transactionId: txn._id });
+        }
+
         res.redirect('/transactions');
     } catch (e) {
         console.error("Error creating transaction:", e);

@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon server.js"
   },
   "repository": {
     "type": "git",
@@ -19,6 +20,7 @@
   },
   "homepage": "https://github.com/sapnilbiswas/Code_A_Thon#readme",
   "dependencies": {
+    "@agendajs/mongo-backend": "^4.0.2",
     "agenda": "^6.2.5",
     "connect-mongo": "^6.0.0",
     "dotenv": "^17.4.2",
