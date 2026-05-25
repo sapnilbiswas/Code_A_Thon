@@ -53,10 +53,14 @@ passport.use(new LocalStrategy(User.authenticate()));
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
-// Make currentUser and activePage available in all templates
+// Make currentUser, activePage, and session flash messages available in all templates
 app.use((req, res, next) => {
     res.locals.currentUser = req.user;
     res.locals.activePage = req.originalUrl ? req.originalUrl.split('?')[0] : '';
+    res.locals.success = req.session.success || '';
+    res.locals.error = req.session.error || '';
+    delete req.session.success;
+    delete req.session.error;
     next();
 });
 
@@ -65,11 +69,15 @@ const authRoutes = require('./server/routes/auth');
 const transactionsRoutes = require('./server/routes/transactions');
 const dashboardRoutes = require('./server/routes/dashboard');
 const budgetRoutes = require('./server/routes/budget');
+const savingsRoutes = require('./server/routes/savings');
+const reportRoutes = require('./server/routes/report');
 const { isLoggedIn } = require('./server/middleware/auth');
 
 app.use('/auth', authRoutes);
 app.use('/transactions', transactionsRoutes);
 app.use('/budgets', budgetRoutes);
+app.use('/savings', savingsRoutes);
+app.use('/reports', reportRoutes);
 app.use('/', dashboardRoutes);
 
 app.get('/', (req, res) => {
