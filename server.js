@@ -15,7 +15,7 @@ const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const app = express();
 
 // --- Database Connection ---
-mongoose.connect('mongodb://127.0.0.1:27017/codeathon_db')
+mongoose.connect(process.env.MONGODB_URI)
 .then(()=>{
     console.log("Connected to MongoDB")
 })

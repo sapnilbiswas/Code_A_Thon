@@ -153,6 +153,11 @@
                             Budget Compliance Audit
                         </h2>
 
+                        <!-- Polar Area Chart -->
+                        <div class="w-full mb-8 print:hidden" style="height: 250px;">
+                            <canvas id="reportChart"></canvas>
+                        </div>
+
                         <% if (typeof budgetSummaries === 'undefined' || budgetSummaries.length === 0) { %>
                             <p class="text-on-surface-variant text-center py-6 font-body-lg">No budget targets were set for this period.</p>
                         <% } else { %>
@@ -336,3 +341,60 @@
         </div>
     </main>
 </div>
+
+<script>
+    // --- Chart.js Integration: Report Polar Area ---
+    document.addEventListener('DOMContentLoaded', () => {
+        const budgets = <%- JSON.stringify(typeof budgetSummaries !== 'undefined' ? budgetSummaries : []) %>;
+        if (budgets.length === 0) return;
+
+        const labels = budgets.map(b => b.category);
+        const data = budgets.map(b => b.spent);
+        const colors = ['#ab3500', '#7f5700', '#8d7168', '#b61524', '#ba1a1a', '#ff6b35'];
+
+        const ctx = document.getElementById('reportChart');
+        if (ctx) {
+            new Chart(ctx.getContext('2d'), {
+                type: 'polarArea',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: colors.map(c => {
+                            // Add alpha for polar area
+                            return c; // We'll just use the solid colors or manually add alpha if needed, ChartJS handles it ok usually. Let's just pass solid colors but they might overlap.
+                        }),
+                        borderWidth: 1,
+                        borderColor: 'rgba(255,255,255,0.1)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            ticks: { display: false },
+                            grid: { color: 'rgba(141, 113, 104, 0.2)' } // outline-variant
+                        }
+                    },
+                    plugins: {
+                        legend: { 
+                            position: 'right',
+                            labels: {
+                                font: { family: "'Plus Jakarta Sans', sans-serif" },
+                                color: '#594139'
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ' ₹' + context.raw.toLocaleString();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    });
+</script>

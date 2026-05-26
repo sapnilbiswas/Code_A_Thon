@@ -99,67 +99,80 @@
                     <span class="text-xs text-on-surface-variant ml-2">&mdash; ₹<%= Math.max(0, remainingBudget).toLocaleString(undefined, {minimumFractionDigits: 0}) %> unallocated</span>
                 </div>
                 <% } %>
-                <div class="flex justify-between items-start mb-8 relative z-10">
-                    <div>
-                        <h3 class="font-title-md text-title-md text-on-surface-variant mb-2">Total Monthly Spend Limit</h3>
-                        <div class="flex items-baseline gap-3">
-                            <span class="font-display-lg text-display-lg text-on-background">
-                                ₹<%= (typeof spentTotal !== 'undefined') ? spentTotal.toLocaleString(undefined, {minimumFractionDigits: 0}) : '0' %>
-                            </span>
-                            <span class="font-body-lg text-body-lg text-on-surface-variant">
-                                / ₹<%= (typeof limitTotal !== 'undefined') ? limitTotal.toLocaleString(undefined, {minimumFractionDigits: 0}) : '0' %> Limit
-                            </span>
-                        </div>
-                    </div>div>
-                    <% 
-                        let overallPercent = 0; 
-                        if (typeof spentTotal !== 'undefined' && typeof limitTotal !== 'undefined' && limitTotal > 0) {
-                            overallPercent = Math.round((spentTotal / limitTotal) * 100);
-                        }
-                    %>
-                    <div class="bg-surface-container px-4 py-2 rounded-full border border-outline-variant/30 flex items-center gap-2">
-                        <div class="w-2 h-2 rounded-full bg-primary-container pulse-ring"></div>
-                        <span class="font-label-md text-label-md text-on-surface"><%= overallPercent %>% Utilized</span>
-                    </div>
-                </div>
-
-                <!-- Horizontal Multi-segment Progress -->
-                <div class="relative z-10">
-                    <%
-                        let segments = [];
-                        if (typeof limitTotal !== 'undefined' && limitTotal > 0 && typeof categorySpent !== 'undefined') {
-                            const colors = ['bg-primary', 'bg-tertiary', 'bg-outline', 'bg-secondary', 'bg-error'];
-                            let colorIdx = 0;
-                            for (const [cat, spent] of Object.entries(categorySpent)) {
-                                if (spent > 0) {
-                                    const width = (spent / limitTotal) * 100;
-                                    segments.push({
-                                        category: cat,
-                                        width: width,
-                                        colorClass: colors[colorIdx % colors.length]
-                                    });
-                                    colorIdx++;
+                <div class="flex flex-col md:flex-row gap-6 relative z-10 w-full items-center">
+                    <div class="flex-1 w-full">
+                        <div class="flex justify-between items-start mb-8 relative z-10">
+                            <div>
+                                <h3 class="font-title-md text-title-md text-on-surface-variant mb-2">Total Monthly Spend Limit</h3>
+                                <div class="flex items-baseline gap-3">
+                                    <span class="font-display-lg text-display-lg text-on-background">
+                                        ₹<%= (typeof spentTotal !== 'undefined') ? spentTotal.toLocaleString(undefined, {minimumFractionDigits: 0}) : '0' %>
+                                    </span>
+                                    <span class="font-body-lg text-body-lg text-on-surface-variant">
+                                        / ₹<%= (typeof limitTotal !== 'undefined') ? limitTotal.toLocaleString(undefined, {minimumFractionDigits: 0}) : '0' %> Limit
+                                    </span>
+                                </div>
+                            </div>
+                            <% 
+                                let overallPercent = 0; 
+                                if (typeof spentTotal !== 'undefined' && typeof limitTotal !== 'undefined' && limitTotal > 0) {
+                                    overallPercent = Math.round((spentTotal / limitTotal) * 100);
                                 }
-                            }
-                        }
-                    %>
-                    <div class="flex justify-between font-label-md text-label-md text-on-surface-variant mb-3 px-1">
-                        <% if (segments.length > 0) { %>
-                            <% segments.forEach(function(seg) { %>
-                                <span><%= seg.category %></span>
-                            <% }) %>
-                        <% } else { %>
-                            <span>No active spend segments</span>
-                        <% } %>
+                            %>
+                            <div class="bg-surface-container px-4 py-2 rounded-full border border-outline-variant/30 flex items-center gap-2">
+                                <div class="w-2 h-2 rounded-full bg-primary-container pulse-ring"></div>
+                                <span class="font-label-md text-label-md text-on-surface"><%= overallPercent %>% Utilized</span>
+                            </div>
+                        </div>
+
+                        <!-- Horizontal Multi-segment Progress -->
+                        <div class="relative z-10">
+                            <%
+                                let segments = [];
+                                if (typeof limitTotal !== 'undefined' && limitTotal > 0 && typeof categorySpent !== 'undefined') {
+                                    const colors = ['bg-primary', 'bg-tertiary', 'bg-outline', 'bg-secondary', 'bg-error'];
+                                    let colorIdx = 0;
+                                    for (const [cat, spent] of Object.entries(categorySpent)) {
+                                        if (spent > 0) {
+                                            const width = (spent / limitTotal) * 100;
+                                            segments.push({
+                                                category: cat,
+                                                width: width,
+                                                colorClass: colors[colorIdx % colors.length]
+                                            });
+                                            colorIdx++;
+                                        }
+                                    }
+                                }
+                            %>
+                            <div class="flex justify-between font-label-md text-label-md text-on-surface-variant mb-3 px-1">
+                                <% if (segments.length > 0) { %>
+                                    <% segments.forEach(function(seg) { %>
+                                        <span><%= seg.category %></span>
+                                    <% }) %>
+                                <% } else { %>
+                                    <span>No active spend segments</span>
+                                <% } %>
+                            </div>
+                            <div class="h-4 w-full bg-surface-container-high rounded-full overflow-hidden flex shadow-inner">
+                                <% if (segments.length > 0) { %>
+                                    <% segments.forEach(function(seg, idx) { %>
+                                        <div class="<%= seg.colorClass %> h-full <%= idx > 0 ? 'border-l border-white/20' : '' %>" style="width: <%= seg.width %>%" title="<%= seg.category %>: <%= Math.round(seg.width) %>%"></div>
+                                    <% }) %>
+                                <% } else { %>
+                                    <div class="bg-outline-variant/20 h-full w-full" title="No budget utilization"></div>
+                                <% } %>
+                            </div>
+                        </div>
                     </div>
-                    <div class="h-4 w-full bg-surface-container-high rounded-full overflow-hidden flex shadow-inner">
-                        <% if (segments.length > 0) { %>
-                            <% segments.forEach(function(seg, idx) { %>
-                                <div class="<%= seg.colorClass %> h-full <%= idx > 0 ? 'border-l border-white/20' : '' %>" style="width: <%= seg.width %>%" title="<%= seg.category %>: <%= Math.round(seg.width) %>%"></div>
-                            <% }) %>
-                        <% } else { %>
-                            <div class="bg-outline-variant/20 h-full w-full" title="No budget utilization"></div>
-                        <% } %>
+                    
+                    <!-- Chart.js Doughnut Canvas -->
+                    <div class="w-[160px] h-[160px] md:w-[180px] md:h-[180px] shrink-0 relative flex items-center justify-center">
+                        <canvas id="budgetsChart"></canvas>
+                        <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                            <span class="text-[10px] uppercase font-bold text-on-surface-variant tracking-wider">Spent</span>
+                            <span class="text-lg font-bold text-on-surface"><%= overallPercent %>%</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -359,6 +372,65 @@
             const y = e.clientY / window.innerHeight;
             orbs[0].style.transform = `translate(${x * 20}px, ${y * 20}px)`;
             orbs[1].style.transform = `translate(${x * -30}px, ${y * -30}px)`;
+        }
+    });
+
+    // --- Chart.js Integration: Budgets Doughnut ---
+    document.addEventListener('DOMContentLoaded', () => {
+        const categorySpent = <%- JSON.stringify(typeof categorySpent !== 'undefined' ? categorySpent : {}) %>;
+        const limitTotal = <%= typeof limitTotal !== 'undefined' ? limitTotal : 0 %>;
+        
+        let spentTotal = 0;
+        const labels = [];
+        const data = [];
+        // Match the colors from horizontal bar: primary, tertiary, outline, secondary, error
+        const colors = ['#ab3500', '#7f5700', '#8d7168', '#b61524', '#ba1a1a', '#ff6b35'];
+        
+        let i = 0;
+        for (const [cat, spent] of Object.entries(categorySpent)) {
+            if (spent > 0) {
+                labels.push(cat);
+                data.push(spent);
+                spentTotal += spent;
+                i++;
+            }
+        }
+        
+        const remaining = Math.max(0, limitTotal - spentTotal);
+        if (remaining > 0) {
+            labels.push('Remaining Budget');
+            data.push(remaining);
+        }
+
+        const ctx = document.getElementById('budgetsChart');
+        if (ctx && data.length > 0) {
+            new Chart(ctx.getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: [...colors.slice(0, i), 'rgba(141, 113, 104, 0.15)'],
+                        borderWidth: 0,
+                        hoverOffset: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '75%',
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ' ₹' + context.raw.toLocaleString();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
         }
     });
 </script>

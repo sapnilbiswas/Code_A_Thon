@@ -208,6 +208,11 @@
                         </div>
                     </div>
 
+                    <!-- Daily Expense Trend Chart -->
+                    <div class="w-full p-6 border-b border-outline-variant/20 hidden md:block" style="height: 250px;">
+                        <canvas id="transactionsChart"></canvas>
+                    </div>
+
                     <!-- Scrollable Table -->
                     <div class="overflow-x-auto flex-grow w-full">
                         <table class="w-full text-left border-collapse" id="txnTable">
@@ -1158,6 +1163,67 @@
             const y = e.clientY / window.innerHeight;
             orbs[0].style.transform = `translate(${x * 20}px, ${y * 20}px)`;
             orbs[1].style.transform = `translate(${x * -30}px, ${y * -30}px)`;
+        }
+    });
+
+    // --- Chart.js Integration: Daily Expense Trend ---
+    document.addEventListener('DOMContentLoaded', () => {
+        const rawTxns = <%- JSON.stringify(typeof transactions !== 'undefined' ? transactions : []) %>;
+        if (!rawTxns || rawTxns.length === 0) return;
+
+        // Group expenses by date
+        const dailyExpenses = {};
+        // Data comes sorted date: -1, so let's reverse it to chronological
+        [...rawTxns].reverse().forEach(t => {
+            if (t.type === 'expense') {
+                const dateStr = new Date(t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                dailyExpenses[dateStr] = (dailyExpenses[dateStr] || 0) + t.amount;
+            }
+        });
+
+        const labels = Object.keys(dailyExpenses);
+        const data = labels.map(l => dailyExpenses[l]);
+
+        const ctx = document.getElementById('transactionsChart');
+        if (ctx) {
+            new Chart(ctx.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Daily Expenses',
+                        data: data,
+                        borderColor: '#ff6b35',
+                        backgroundColor: 'rgba(255, 107, 53, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#ab3500',
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '₹' + value;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
         }
     });
 </script>

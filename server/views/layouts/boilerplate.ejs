@@ -118,6 +118,20 @@
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Global Chart.js Configuration
+        if (typeof Chart !== 'undefined') {
+            Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
+            Chart.defaults.color = '#594139'; // on-surface-variant
+            Chart.defaults.scale.grid.color = 'rgba(225, 191, 181, 0.2)'; // outline-variant with opacity
+            Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(27, 28, 28, 0.9)';
+            Chart.defaults.plugins.tooltip.titleFont = { family: 'Manrope', size: 14, weight: 'bold' };
+            Chart.defaults.plugins.tooltip.bodyFont = { family: 'Plus Jakarta Sans', size: 13 };
+            Chart.defaults.plugins.tooltip.padding = 12;
+            Chart.defaults.plugins.tooltip.cornerRadius = 8;
+        }
+    </script>
     <script src="/js/three-background.js?v=1" defer></script>
     <script src="/js/page-transition.js?v=3"></script>
     <link href="/css/style.css?v=3" rel="stylesheet"/>
