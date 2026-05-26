@@ -1,0 +1,33 @@
+services:
+  # The Node.js Web App
+  - type: web
+    name: codeathon-node-app
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: MONGODB_URI
+        sync: false # Set this in the Render dashboard
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: GEMINI_API_KEY
+        sync: false # Set this in the Render dashboard
+      - key: GOOGLE_CLIENT_ID
+        sync: false # Set this in the Render dashboard
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false # Set this in the Render dashboard
+      - key: GOOGLE_CALLBACK_URL
+        sync: false # Example: https://codeathon-node-app.onrender.com/auth/google/callback
+      - key: ML_SERVICE_URL
+        fromService:
+          type: web
+          name: codeathon-ml-api
+          envVarKey: RENDER_EXTERNAL_URL
+
+  # The Python ML API
+  - type: web
+    name: codeathon-ml-api
+    env: python
+    rootDir: ml-service
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
