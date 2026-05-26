@@ -156,7 +156,8 @@ mongoose.connection.once('open', async () => {
 });
 app.set('agenda', agenda); // Make accessible in routes
 
-app.listen(3200,()=>{
-    console.log("server is running on port 3200")
+const PORT = process.env.PORT || 3200;
+app.listen(PORT,()=>{
+    console.log(`server is running on port ${PORT}`)
 })
 // Trigger nodemon restart
