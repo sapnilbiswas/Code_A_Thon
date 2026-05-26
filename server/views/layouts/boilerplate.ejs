@@ -121,6 +121,48 @@
     <script src="/js/three-background.js?v=1" defer></script>
     <script src="/js/page-transition.js?v=3"></script>
     <link href="/css/style.css?v=3" rel="stylesheet"/>
+    <script>
+        // Override default browser alert with beautiful glassmorphic modal pop-up
+        window.alert = function(msg) {
+            // Create Backdrop
+            const backdrop = document.createElement('div');
+            backdrop.className = 'fixed inset-0 z-[9998] bg-black/40 backdrop-blur-sm flex items-center justify-center opacity-0 transition-opacity duration-300';
+            
+            // Create Modal Pop-up
+            const modal = document.createElement('div');
+            modal.className = 'bg-[#fcf9f8] dark:bg-[#1b1c1c] text-[#1b1c1c] dark:text-[#fcf9f8] p-8 rounded-3xl shadow-[0_20px_50px_rgba(255,107,53,0.2)] border border-outline-variant/30 dark:border-white/10 flex flex-col items-center max-w-sm w-full mx-4 transform scale-95 transition-all duration-300 text-center relative';
+            
+            modal.innerHTML = `
+                <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-[#ff8555] to-[#ff6b35] flex items-center justify-center text-white shadow-lg mb-5">
+                    <span class="material-symbols-outlined text-[32px]">priority_high</span>
+                </div>
+                <h3 class="text-xl font-headline-lg font-bold mb-3">Notice</h3>
+                <p class="text-sm opacity-90 leading-relaxed mb-8">${msg}</p>
+                <button class="w-full py-3.5 bg-gradient-to-r from-[#ff8555] to-[#ff6b35] text-white rounded-xl font-bold tracking-wide shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-95 transition-all">OK, Got it</button>
+            `;
+            
+            backdrop.appendChild(modal);
+            document.body.appendChild(backdrop);
+            
+            // Animate in
+            requestAnimationFrame(() => {
+                backdrop.classList.remove('opacity-0');
+                modal.classList.remove('scale-95');
+                modal.classList.add('scale-100');
+            });
+            
+            // Dismiss handler
+            const btn = modal.querySelector('button');
+            const dismiss = () => {
+                backdrop.classList.add('opacity-0');
+                modal.classList.remove('scale-100');
+                modal.classList.add('scale-95');
+                setTimeout(() => backdrop.remove(), 300);
+            };
+            btn.onclick = dismiss;
+            backdrop.onclick = (e) => { if(e.target === backdrop) dismiss(); };
+        };
+    </script>
 </head>
 <body class="bg-background min-h-screen flex items-center justify-center relative overflow-hidden font-body-lg text-on-surface transition-colors duration-300">
     <!-- Global 3D Network Background -->
