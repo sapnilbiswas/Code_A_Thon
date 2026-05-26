@@ -100,7 +100,7 @@
                 <div class="glass-card rounded-xl p-6 hover-lift">
                     <span class="text-xs text-on-surface-variant uppercase font-bold tracking-wider block mb-2">Total Inflow</span>
                     <h3 class="text-xl sm:text-2xl md:text-3xl lg:text-lg xl:text-xl 2xl:text-2xl text-green-500 font-bold tracking-tight flex items-baseline">
-                        <span class="text-primary font-bold mr-0.5 text-base sm:text-lg md:text-xl lg:text-sm xl:text-base 2xl:text-lg">$</span>
+                        <span class="text-primary font-bold mr-0.5 text-base sm:text-lg md:text-xl lg:text-sm xl:text-base 2xl:text-lg">₹</span>
                         <%= totalIncome.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %>
                     </h3>
                 </div>
@@ -109,7 +109,7 @@
                 <div class="glass-card rounded-xl p-6 hover-lift">
                     <span class="text-xs text-on-surface-variant uppercase font-bold tracking-wider block mb-2">Total Outflow</span>
                     <h3 class="text-xl sm:text-2xl md:text-3xl lg:text-lg xl:text-xl 2xl:text-2xl text-coral font-bold tracking-tight flex items-baseline print:text-black">
-                        <span class="text-primary font-bold mr-0.5 text-base sm:text-lg md:text-xl lg:text-sm xl:text-base 2xl:text-lg">$</span>
+                        <span class="text-primary font-bold mr-0.5 text-base sm:text-lg md:text-xl lg:text-sm xl:text-base 2xl:text-lg">₹</span>
                         <%= totalExpense.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %>
                     </h3>
                 </div>
@@ -121,7 +121,7 @@
                         <% if (netSavings < 0) { %>
                             <span class="text-error font-bold mr-0.5 text-base sm:text-lg md:text-xl lg:text-sm xl:text-base 2xl:text-lg">-</span>
                         <% } %>
-                        <span class="text-primary font-bold mr-0.5 text-base sm:text-lg md:text-xl lg:text-sm xl:text-base 2xl:text-lg">$</span>
+                        <span class="text-primary font-bold mr-0.5 text-base sm:text-lg md:text-xl lg:text-sm xl:text-base 2xl:text-lg">₹</span>
                         <%= Math.abs(netSavings).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %>
                     </h3>
                 </div>
@@ -130,7 +130,7 @@
                 <div class="glass-card rounded-xl p-6 hover-lift">
                     <span class="text-xs text-on-surface-variant uppercase font-bold tracking-wider block mb-2">Total Saved</span>
                     <h3 class="text-xl sm:text-2xl md:text-3xl lg:text-lg xl:text-xl 2xl:text-2xl text-on-background font-bold tracking-tight flex items-baseline print:text-black">
-                        <span class="text-primary font-bold mr-0.5 text-base sm:text-lg md:text-xl lg:text-sm xl:text-base 2xl:text-lg">$</span>
+                        <span class="text-primary font-bold mr-0.5 text-base sm:text-lg md:text-xl lg:text-sm xl:text-base 2xl:text-lg">₹</span>
                         <%= typeof totalSavedAmount !== 'undefined' ? totalSavedAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00' %>
                     </h3>
                 </div>
@@ -162,7 +162,7 @@
                                         <div class="flex justify-between items-center text-sm font-semibold mb-2">
                                             <span class="text-on-surface font-semibold"><%= budget.category %></span>
                                             <span class="<%= budget.isOver ? 'text-error font-bold' : 'text-on-surface-variant' %>">
-                                                $<%= Math.round(budget.spent).toLocaleString() %> / $<%= Math.round(budget.limitAmount).toLocaleString() %> 
+                                                ₹<%= Math.round(budget.spent).toLocaleString() %> / ₹<%= Math.round(budget.limitAmount).toLocaleString() %> 
                                                 (<%= budget.percentUsed %>%)
                                             </span>
                                         </div>
@@ -172,7 +172,7 @@
                                         <% if (budget.isOver) { %>
                                             <p class="text-xs text-error mt-1 flex items-center gap-1 font-semibold">
                                                 <span class="material-symbols-outlined text-[14px]">warning</span>
-                                                Overrun by $<%= Math.round(budget.spent - budget.limitAmount).toLocaleString() %>!
+                                                Overrun by ₹<%= Math.round(budget.spent - budget.limitAmount).toLocaleString() %>!
                                             </p>
                                         <% } %>
                                     </div>
@@ -208,7 +208,7 @@
                                                 </span>
                                             </div>
                                             <div class="text-right">
-                                                <span class="font-bold text-error block text-sm">$<%= alert.amount.toLocaleString() %></span>
+                                                <span class="font-bold text-error block text-sm">₹<%= alert.amount.toLocaleString() %></span>
                                                 <span class="text-[10px] bg-error-container text-error px-2 py-0.5 rounded font-bold uppercase tracking-wider badge-print">
                                                     Score: <%= Math.round(alert.fraudScore * 100) %>%
                                                 </span>
@@ -256,8 +256,8 @@
                                         <div class="h-full <%= percent >= 100 ? 'bg-green-500' : 'bg-primary' %> rounded-full" style="width: <%= percent %>%"></div>
                                     </div>
                                     <div class="flex justify-between text-xs text-on-surface-variant mb-2">
-                                        <span>$<%= goal.currentAmount.toLocaleString() %> saved</span>
-                                        <span>Goal: $<%= goal.targetAmount.toLocaleString() %></span>
+                                        <span>₹<%= goal.currentAmount.toLocaleString() %> saved</span>
+                                        <span>Goal: ₹<%= goal.targetAmount.toLocaleString() %></span>
                                     </div>
                                 </div>
                                 <% if (percent >= 100) { %>
@@ -311,7 +311,7 @@
                                             <%= t.type %>
                                         </td>
                                         <td class="py-4 px-4 text-sm font-bold text-right <%= t.type === 'income' ? 'text-green-600' : 'text-on-surface' %>">
-                                            <%= t.type === 'income' ? '+' : '-' %>$<%= t.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %>
+                                            <%= t.type === 'income' ? '+' : '-' %>₹<%= t.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %>
                                         </td>
                                         <td class="py-4 px-4 text-sm text-center">
                                             <% if (t.isFlagged) { %>
@@ -330,7 +330,7 @@
 
             <!-- Footer Signature Box (Only visible on Print) -->
             <div class="hidden print:block mt-16 pt-8 border-t border-gray-300 text-center text-xs text-gray-500">
-                <p>FraudGuard Automated Financial Statement • Built securely via Code-A-Thon Fintech</p>
+                <p>Finova Automated Financial Statement • Built securely via Code-A-Thon Fintech</p>
                 <p class="mt-1">Generated: <%= new Date().toLocaleString() %></p>
             </div>
         </div>

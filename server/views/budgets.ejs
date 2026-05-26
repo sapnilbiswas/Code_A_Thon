@@ -43,14 +43,14 @@
                 <% if (error === 'exceeds_income') { %>
                     <p class="font-semibold text-error">Budget Exceeds Monthly Income</p>
                     <p class="text-sm text-on-surface-variant mt-0.5">
-                        Total budget of $<%= typeof errorAttempted !== 'undefined' && errorAttempted ? errorAttempted.toLocaleString() : '—' %>
-                        exceeds your monthly income of $<%= typeof errorIncome !== 'undefined' && errorIncome ? errorIncome.toLocaleString() : '—' %>.
+                        Total budget of ₹<%= typeof errorAttempted !== 'undefined' && errorAttempted ? errorAttempted.toLocaleString() : '—' %>
+                        exceeds your monthly income of ₹<%= typeof errorIncome !== 'undefined' && errorIncome ? errorIncome.toLocaleString() : '—' %>.
                         Please reduce the limit amount.
                     </p>
                 <% } else if (error === 'zero_income') { %>
                     <p class="font-semibold text-error">Zero Income</p>
                     <p class="text-sm text-on-surface-variant mt-0.5">
-                        You cannot set a budget because your monthly income is $0. Please add an income transaction first.
+                        You cannot set a budget because your monthly income is ₹0. Please add an income transaction first.
                     </p>
                 <% } %>
             </div>
@@ -79,7 +79,7 @@
             </div>
             <div class="shrink-0 text-right">
                 <div class="text-xs text-on-surface-variant uppercase tracking-wider mb-0.5">Current Surplus</div>
-                <div class="text-2xl font-bold text-indigo-300">$<%= surplus.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0}) %></div>
+                <div class="text-2xl font-bold text-indigo-300">₹<%= surplus.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0}) %></div>
                 <div class="text-xs text-on-surface-variant">going to savings</div>
             </div>
         </div>
@@ -94,9 +94,9 @@
                 <% if (mIncome > 0) { %>
                 <div class="flex items-center gap-2 mb-4 px-3 py-2 rounded-lg bg-green-500/10 border border-green-500/20 w-fit">
                     <span class="material-symbols-outlined text-green-500 text-[16px]">account_balance</span>
-                    <span class="text-xs font-medium text-green-500">Monthly Income: $<%= mIncome.toLocaleString(undefined, {minimumFractionDigits: 0}) %></span>
+                    <span class="text-xs font-medium text-green-500">Monthly Income: ₹<%= mIncome.toLocaleString(undefined, {minimumFractionDigits: 0}) %></span>
                     <% const remainingBudget = mIncome - (typeof limitTotal !== 'undefined' ? limitTotal : 0); %>
-                    <span class="text-xs text-on-surface-variant ml-2">&mdash; $<%= Math.max(0, remainingBudget).toLocaleString(undefined, {minimumFractionDigits: 0}) %> unallocated</span>
+                    <span class="text-xs text-on-surface-variant ml-2">&mdash; ₹<%= Math.max(0, remainingBudget).toLocaleString(undefined, {minimumFractionDigits: 0}) %> unallocated</span>
                 </div>
                 <% } %>
                 <div class="flex justify-between items-start mb-8 relative z-10">
@@ -104,13 +104,13 @@
                         <h3 class="font-title-md text-title-md text-on-surface-variant mb-2">Total Monthly Spend Limit</h3>
                         <div class="flex items-baseline gap-3">
                             <span class="font-display-lg text-display-lg text-on-background">
-                                $<%= (typeof spentTotal !== 'undefined') ? spentTotal.toLocaleString(undefined, {minimumFractionDigits: 0}) : '0' %>
+                                ₹<%= (typeof spentTotal !== 'undefined') ? spentTotal.toLocaleString(undefined, {minimumFractionDigits: 0}) : '0' %>
                             </span>
                             <span class="font-body-lg text-body-lg text-on-surface-variant">
-                                / $<%= (typeof limitTotal !== 'undefined') ? limitTotal.toLocaleString(undefined, {minimumFractionDigits: 0}) : '0' %> Limit
+                                / ₹<%= (typeof limitTotal !== 'undefined') ? limitTotal.toLocaleString(undefined, {minimumFractionDigits: 0}) : '0' %> Limit
                             </span>
                         </div>
-                    </div>
+                    </div>div>
                     <% 
                         let overallPercent = 0; 
                         if (typeof spentTotal !== 'undefined' && typeof limitTotal !== 'undefined' && limitTotal > 0) {
@@ -259,12 +259,12 @@
                             <div class="flex justify-between font-body-sm text-body-sm mb-1">
                                 <span class="<%= b.percent >= 100 ? 'text-secondary font-medium' : 'text-on-surface-variant' %>">Spent</span>
                                 <span class="font-medium <%= b.percent >= 100 ? 'text-secondary font-bold' : 'text-on-surface' %>">
-                                    $<%= b.spent.toLocaleString() %>
+                                    ₹<%= b.spent.toLocaleString() %>
                                 </span>
                             </div>
                             <div class="flex justify-between font-body-sm text-body-sm">
                                 <span class="text-on-surface-variant">Global Budget</span>
-                                <span class="font-medium text-on-surface"><%= typeof limitTotal !== 'undefined' ? '$' + limitTotal.toLocaleString() : 'N/A' %></span>
+                                <span class="font-medium text-on-surface"><%= typeof limitTotal !== 'undefined' ? '₹' + limitTotal.toLocaleString() : 'N/A' %></span>
                             </div>
                         </div>
                     </div>
@@ -287,8 +287,8 @@
                 <div class="mb-4 p-3 rounded-lg bg-green-500/10 border border-green-500/20 flex items-center gap-2">
                     <span class="material-symbols-outlined text-green-500 text-[16px]">account_balance</span>
                     <div class="text-xs">
-                        <span class="text-green-500 font-medium">Monthly Income: $<%= monthlyIncome.toLocaleString(undefined, {minimumFractionDigits: 0}) %></span>
-                        <span class="text-on-surface-variant ml-2">&mdash; Max total budget allowed: $<%= monthlyIncome.toLocaleString(undefined, {minimumFractionDigits: 0}) %></span>
+                        <span class="text-green-500 font-medium">Monthly Income: ₹<%= monthlyIncome.toLocaleString(undefined, {minimumFractionDigits: 0}) %></span>
+                        <span class="text-on-surface-variant ml-2">&mdash; Max total budget allowed: ₹<%= monthlyIncome.toLocaleString(undefined, {minimumFractionDigits: 0}) %></span>
                     </div>
                 </div>
                 <% } %>
@@ -298,9 +298,9 @@
 
                     <!-- Limit Amount -->
                     <div>
-                        <label class="font-label-md text-label-md text-on-surface-variant block mb-1 uppercase tracking-wider" for="modalLimit">Limit Amount (USD)</label>
+                        <label class="font-label-md text-label-md text-on-surface-variant block mb-1 uppercase tracking-wider" for="modalLimit">Limit Amount (INR)</label>
                         <div class="relative">
-                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant material-symbols-outlined" style="font-size: 18px;">attach_money</span>
+                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant material-symbols-outlined" style="font-size: 18px;">currency_rupee</span>
                             <input class="w-full input-premium rounded-lg pl-10 pr-4 py-3 font-body-lg text-body-lg text-on-surface focus:ring-0" id="modalLimit" name="limitAmount" placeholder="500" min="1" required type="number"/>
                         </div>
                     </div>
