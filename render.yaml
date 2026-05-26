@@ -3,6 +3,7 @@ services:
   - type: web
     name: codeathon-node-app
     env: node
+    plan: free
     buildCommand: npm install
     startCommand: npm start
     envVars:
@@ -28,6 +29,7 @@ services:
   - type: web
     name: codeathon-ml-api
     env: python
+    plan: free
     rootDir: ml-service
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn app:app
