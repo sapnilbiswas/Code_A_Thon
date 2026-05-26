@@ -82,12 +82,12 @@
                     </div>
                     <p class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-2">Total Volume</p>
                     <% 
-                        let volumeVal = (typeof totals !== 'undefined' && totals.processedVolume) ? totals.processedVolume : '$12.4M';
-                        let hasVolumeDollar = volumeVal.includes('$');
-                        let cleanVolumeVal = volumeVal.replace('$', '');
+                        let volumeVal = (typeof totals !== 'undefined' && totals.processedVolume) ? totals.processedVolume : '₹12.4M';
+                        let hasVolumeDollar = volumeVal.includes('$') || volumeVal.includes('₹');
+                        let cleanVolumeVal = volumeVal.replace('$', '').replace('₹', '');
                     %>
                     <h3 class="text-xl sm:text-2xl md:text-3xl lg:text-lg xl:text-xl 2xl:text-2xl text-on-background font-bold tracking-tight flex items-baseline">
-                        <% if (hasVolumeDollar) { %><span class="text-primary font-bold mr-1 text-base sm:text-lg md:text-xl lg:text-sm xl:text-base 2xl:text-lg">$</span><% } %>
+                        <% if (hasVolumeDollar) { %><span class="text-primary font-bold mr-1 text-base sm:text-lg md:text-xl lg:text-sm xl:text-base 2xl:text-lg">₹</span><% } %>
                         <%= cleanVolumeVal %>
                     </h3>
                 </div>
@@ -153,12 +153,12 @@
                     </div>
                     <p class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-2">Prevented Losses</p>
                     <% 
-                        let lossesVal = (typeof totals !== 'undefined' && totals.preventedLosses) ? totals.preventedLosses : '$450K';
-                        let hasLossesDollar = lossesVal.includes('$');
-                        let cleanLossesVal = lossesVal.replace('$', '');
+                        let lossesVal = (typeof totals !== 'undefined' && totals.preventedLosses) ? totals.preventedLosses : '₹450K';
+                        let hasLossesDollar = lossesVal.includes('$') || lossesVal.includes('₹');
+                        let cleanLossesVal = lossesVal.replace('$', '').replace('₹', '');
                     %>
                     <h3 class="text-xl sm:text-2xl md:text-3xl lg:text-lg xl:text-xl 2xl:text-2xl text-on-background font-bold tracking-tight flex items-baseline">
-                        <% if (hasLossesDollar) { %><span class="text-primary font-bold mr-1 text-base sm:text-lg md:text-xl lg:text-sm xl:text-base 2xl:text-lg">$</span><% } %>
+                        <% if (hasLossesDollar) { %><span class="text-primary font-bold mr-1 text-base sm:text-lg md:text-xl lg:text-sm xl:text-base 2xl:text-lg">₹</span><% } %>
                         <%= cleanLossesVal %>
                     </h3>
                 </div>
@@ -182,18 +182,18 @@
                         <div>
                             <p class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-0.5"><%= (typeof savingsLabel !== 'undefined') ? savingsLabel : 'Monthly Savings' %></p>
                             <h3 class="font-display-lg text-display-lg <%= savingsPositive ? 'text-green-500' : 'text-error' %>">
-                                <%= savingsPositive ? '' : '-' %>$<%= Math.abs(mSavings).toLocaleString(undefined, { maximumFractionDigits: 0 }) %>
+                                <%= savingsPositive ? '' : '-' %>₹<%= Math.abs(mSavings).toLocaleString(undefined, { maximumFractionDigits: 0 }) %>
                             </h3>
                         </div>
                     </div>
                     <div class="flex flex-wrap gap-6 md:gap-12">
                         <div class="text-center">
                             <p class="font-label-md text-label-md text-on-surface-variant mb-1"><%= (typeof incomeLabel !== 'undefined') ? incomeLabel : 'Monthly Income' %></p>
-                            <p class="font-headline-lg text-headline-lg text-green-500">+$<%= mIncome.toLocaleString(undefined, { maximumFractionDigits: 0 }) %></p>
+                            <p class="font-headline-lg text-headline-lg text-green-500">+₹<%= mIncome.toLocaleString(undefined, { maximumFractionDigits: 0 }) %></p>
                         </div>
                         <div class="text-center">
                             <p class="font-label-md text-label-md text-on-surface-variant mb-1"><%= (typeof expensesLabel !== 'undefined') ? expensesLabel : 'Monthly Expenses' %></p>
-                            <p class="font-headline-lg text-headline-lg text-secondary">-$<%= mExpense.toLocaleString(undefined, { maximumFractionDigits: 0 }) %></p>
+                            <p class="font-headline-lg text-headline-lg text-secondary">-₹<%= mExpense.toLocaleString(undefined, { maximumFractionDigits: 0 }) %></p>
                         </div>
                         <div class="text-center">
                             <p class="font-label-md text-label-md text-on-surface-variant mb-1">Savings Rate</p>
@@ -222,13 +222,13 @@
                             <span class="material-symbols-outlined text-[16px] text-primary animate-pulse">online_prediction</span>
                         </div>
                         <h4 class="font-title-md text-title-md <%= overForecast ? 'text-error font-bold' : 'text-on-background' %>">
-                            $<%= mForecast.toLocaleString() %>
+                            ₹<%= mForecast.toLocaleString() %>
                         </h4>
                         <div class="w-full bg-surface-container rounded-full h-1.5 mt-2">
                             <div class="h-1.5 rounded-full <%= overForecast ? 'bg-error' : 'bg-green-500' %>" style="width: <%= mLimit > 0 ? Math.min(100, Math.round((mForecast/mLimit)*100)) : 50 %>%"></div>
                         </div>
                         <p class="text-[10px] text-on-surface-variant mt-1.5">
-                            <%= mLimit > 0 ? `${Math.round((mForecast/mLimit)*100)}% of limit ($${mLimit.toLocaleString()})` : 'Based on spending velocity' %>
+                            <%= mLimit > 0 ? `${Math.round((mForecast/mLimit)*100)}% of limit (₹${mLimit.toLocaleString()})` : 'Based on spending velocity' %>
                         </p>
                     </div>
                 </div>
@@ -241,7 +241,7 @@
                     <div class="flex items-center justify-between mb-4">
                         <div class="flex items-center gap-2">
                             <span class="material-symbols-outlined text-primary font-bold animate-pulse text-[24px]">psychology</span>
-                            <h3 class="font-title-md text-title-md text-on-background">FraudGuard AI Smart Advisor</h3>
+                            <h3 class="font-title-md text-title-md text-on-background">Finova AI Smart Advisor</h3>
                         </div>
                         <span class="text-[10px] bg-primary-container/20 text-primary-container px-2.5 py-1 rounded font-bold uppercase tracking-wider">Gemini Pro Enabled</span>
                     </div>
@@ -434,7 +434,7 @@
                     <div class="flex items-center justify-between mb-4 border-b border-outline-variant/20 pb-4">
                         <p class="text-sm text-on-surface-variant">Estimated Annual Cost</p>
                         <h4 class="font-headline-sm text-headline-sm text-error font-bold">
-                            $<%= (typeof totalAnnualSubscriptionCost !== 'undefined') ? totalAnnualSubscriptionCost.toLocaleString(undefined, {minimumFractionDigits: 2}) : '0.00' %>
+                            ₹<%= (typeof totalAnnualSubscriptionCost !== 'undefined') ? totalAnnualSubscriptionCost.toLocaleString(undefined, {minimumFractionDigits: 2}) : '0.00' %>
                         </h4>
                     </div>
 
@@ -451,7 +451,7 @@
                                             <p class="text-[10px] text-on-surface-variant">Billed <%= sub.count %> times recently</p>
                                         </div>
                                     </div>
-                                    <p class="font-bold text-sm text-secondary shrink-0">-$<%= parseFloat(sub._id.amount).toFixed(2) %><span class="text-[10px] font-normal text-on-surface-variant">/mo</span></p>
+                                    <p class="font-bold text-sm text-secondary shrink-0">-₹<%= parseFloat(sub._id.amount).toFixed(2) %><span class="text-[10px] font-normal text-on-surface-variant">/mo</span></p>
                                 </div>
                             <% }) %>
                         <% } else { %>
@@ -485,11 +485,11 @@
                         <div class="flex justify-between gap-4 mt-2">
                             <div class="bg-surface-container-low p-4 rounded-xl flex-1 border border-outline-variant/10 text-center">
                                 <p class="text-[10px] text-on-surface-variant uppercase tracking-wider mb-1">Extra Monthly Savings</p>
-                                <p class="font-bold text-lg text-green-500" id="extra-savings-val">+$0</p>
+                                <p class="font-bold text-lg text-green-500" id="extra-savings-val">+₹0</p>
                             </div>
                             <div class="bg-primary/5 p-4 rounded-xl flex-1 border border-primary/20 text-center">
                                 <p class="text-[10px] text-on-surface-variant uppercase tracking-wider mb-1">10-Year Wealth (8% ROI)</p>
-                                <p class="font-bold text-xl text-primary" id="projected-wealth-val">$0</p>
+                                <p class="font-bold text-xl text-primary" id="projected-wealth-val">₹0</p>
                             </div>
                         </div>
                         
@@ -559,7 +559,7 @@
                 <span class="font-bold text-sm tracking-wider uppercase">⚠️ Fraud Alert Detected</span>
             </div>
             <div class="relative z-10 mt-1">
-                <p class="font-bold text-lg mb-1">$${parseFloat(data.amount).toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
+                <p class="font-bold text-lg mb-1">₹${parseFloat(data.amount).toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
                 <p class="text-xs text-white/90">Score: <strong class="text-white">${(data.score * 100).toFixed(1)}%</strong> | Flagged category: <strong>${data.category}</strong></p>
                 <div class="mt-2 flex flex-col gap-1 text-[11px] text-white/80 border-t border-white/10 pt-2">
                     ${data.reasons.map(r => `<div>• ${r}</div>`).join('')}
@@ -656,14 +656,14 @@
             cutLabel.textContent = cutPercent + '%';
             
             const extraMonthlySavings = currentMonthlyExpenses * (cutPercent / 100);
-            savingsVal.textContent = '+$' + Math.round(extraMonthlySavings).toLocaleString();
+            savingsVal.textContent = '+₹' + Math.round(extraMonthlySavings).toLocaleString();
             
             // Compound Interest Formula for 10 years at 8% (annual rate, monthly compounding)
             const r = 0.08 / 12;
             const n = 12 * 10;
             // Future Value of a Series formula
             const projectedWealth = extraMonthlySavings > 0 ? extraMonthlySavings * ( (Math.pow(1 + r, n) - 1) / r ) : 0;
-            wealthVal.textContent = '$' + Math.round(projectedWealth).toLocaleString();
+            wealthVal.textContent = '₹' + Math.round(projectedWealth).toLocaleString();
             
             // Generate Data points for the chart (0 to 10 years)
             const labels = [];
@@ -708,7 +708,7 @@
                             tooltip: {
                                 callbacks: {
                                     label: function(context) {
-                                        return '$' + context.parsed.y.toLocaleString();
+                                        return '₹' + context.parsed.y.toLocaleString();
                                     }
                                 }
                             }

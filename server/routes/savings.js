@@ -77,7 +77,7 @@ router.post('/:id/deposit', async (req, res) => {
         const totalIncome = incomeTxns.reduce((s, t) => s + t.amount, 0);
 
         if (totalIncome === 0) {
-            req.session.error = "Zero Income: You cannot deposit savings because your monthly income is $0.";
+            req.session.error = "Zero Income: You cannot deposit savings because your monthly income is ₹0.";
             return res.redirect('/savings');
         }
 
@@ -103,9 +103,9 @@ router.post('/:id/deposit', async (req, res) => {
 
         await goal.save();
 
-        let successMsg = `Deposited $${depositAmount.toLocaleString()} to "${goal.title}"!`;
+        let successMsg = `Deposited ₹${depositAmount.toLocaleString()} to "${goal.title}"!`;
         if (unlockedMilestones.includes(100)) {
-            successMsg = `🏆 Congratulations! You have reached your savings goal of $${goal.targetAmount.toLocaleString()} for "${goal.title}"!`;
+            successMsg = `🏆 Congratulations! You have reached your savings goal of ₹${goal.targetAmount.toLocaleString()} for "${goal.title}"!`;
         } else if (unlockedMilestones.length > 0) {
             const milestoneText = unlockedMilestones.map(p => `${p}%`).join(', ');
             successMsg += ` 🎉 Milestone Unlocked: Reached ${milestoneText} of your target!`;

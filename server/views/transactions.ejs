@@ -31,24 +31,24 @@
                 <% if (error === 'insufficient_balance') { %>
                     <p class="font-semibold text-error">Insufficient Balance</p>
                     <p class="text-sm text-on-surface-variant mt-0.5">
-                        This expense was blocked. Your monthly income is $<%= typeof income !== 'undefined' && income ? income : '0' %>.
-                        You only have $<%= typeof remaining !== 'undefined' && remaining ? remaining : '0' %> remaining.
+                        This expense was blocked. Your monthly income is ₹<%= typeof income !== 'undefined' && income ? income : '0' %>.
+                        You only have ₹<%= typeof remaining !== 'undefined' && remaining ? remaining : '0' %> remaining.
                         Add income first before recording this expense.
                     </p>
                 <% } else if (error === 'zero_income') { %>
                     <p class="font-semibold text-error">Zero Income</p>
                     <p class="text-sm text-on-surface-variant mt-0.5">
-                        You cannot record expenses because your monthly income is $0. Please add an income transaction first.
+                        You cannot record expenses because your monthly income is ₹0. Please add an income transaction first.
                     </p>
                 <% } else if (error === 'zero_budget') { %>
                     <p class="font-semibold text-error">Zero Budget</p>
                     <p class="text-sm text-on-surface-variant mt-0.5">
-                        Your budget is $0. You must set a budget in the Budgets tab before recording expenses.
+                        Your budget is ₹0. You must set a budget in the Budgets tab before recording expenses.
                     </p>
                 <% } else if (error === 'budget_exceeded') { %>
                     <p class="font-semibold text-error">Budget Exceeded</p>
                     <p class="text-sm text-on-surface-variant mt-0.5">
-                        This expense would exceed your monthly budget of $<%= typeof budget !== 'undefined' && budget ? budget : '0' %>. 
+                        This expense would exceed your monthly budget of ₹<%= typeof budget !== 'undefined' && budget ? budget : '0' %>. 
                         Please increase your budget before recording this expense.
                     </p>
                 <% } %>
@@ -72,7 +72,7 @@
                     <p class="text-xs text-on-surface-variant mb-4">Paste your bank SMS or UPI notification to save it directly to the database instantly!</p>
                     <div class="flex flex-col gap-3">
                         <div class="relative w-full">
-                            <textarea id="quick-ingest-text" rows="2" class="w-full input-premium rounded-lg pl-3 pr-12 py-2 text-xs text-on-surface placeholder-outline focus:ring-0" placeholder="e.g. Sent $45.00 to Reliance Mart for Groceries on 2026-05-25"></textarea>
+                            <textarea id="quick-ingest-text" rows="2" class="w-full input-premium rounded-lg pl-3 pr-12 py-2 text-xs text-on-surface placeholder-outline focus:ring-0" placeholder="e.g. Sent ₹45.00 to Reliance Mart for Groceries on 2026-05-25"></textarea>
                             <button id="voice-btn" onclick="startVoiceRecognition()" type="button" class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all flex items-center justify-center cursor-pointer shadow-sm border border-primary/20" title="Voice Input">
                                 <span class="material-symbols-outlined text-[18px]">mic</span>
                             </button>
@@ -139,9 +139,9 @@
 
                         <!-- Amount -->
                         <div>
-                            <label class="font-label-md text-label-md text-on-surface-variant block mb-1 uppercase tracking-wider" for="amount">Amount (USD)</label>
+                            <label class="font-label-md text-label-md text-on-surface-variant block mb-1 uppercase tracking-wider" for="amount">Amount (INR)</label>
                             <div class="relative">
-                                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant material-symbols-outlined" style="font-size: 18px;">attach_money</span>
+                                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant material-symbols-outlined" style="font-size: 18px;">currency_rupee</span>
                                 <input class="w-full input-premium rounded-lg pl-10 pr-4 py-3 font-body-lg text-body-lg text-on-surface focus:ring-0" id="amount" name="amount" placeholder="0.00" step="0.01" min="0.01" required type="number"/>
                             </div>
                         </div>
@@ -237,7 +237,7 @@
                                                 <span class="px-2.5 py-1 rounded bg-surface-container-high/60 text-xs"><%= txn.category %></span>
                                             </td>
                                             <td class="py-4 px-6 text-right font-medium <%= txn.type === 'income' ? 'text-green-600' : 'text-secondary' %>">
-                                                <%= txn.type === 'income' ? '+' : '-' %>$<%= parseFloat(txn.amount).toLocaleString(undefined, {minimumFractionDigits: 2}) %>
+                                                <%= txn.type === 'income' ? '+' : '-' %>₹<%= parseFloat(txn.amount).toLocaleString(undefined, {minimumFractionDigits: 2}) %>
                                             </td>
                                             <td class="py-4 px-6 text-center">
                                                 <% if (txn.isFlagged) { %>
@@ -359,7 +359,7 @@
                         <th class="py-2.5 px-3 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-xs">Description</th>
                         <th class="py-2.5 px-3 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-xs">Category</th>
                         <th class="py-2.5 px-3 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-xs">Type</th>
-                        <th class="py-2.5 px-3 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-xs text-right">Amount ($)</th>
+                        <th class="py-2.5 px-3 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-xs text-right">Amount (₹)</th>
                         <th class="py-2.5 px-3 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-xs text-right">Action</th>
                     </tr>
                 </thead>
@@ -415,7 +415,7 @@
                     if (newExpenseTotal > data.totalIncome) {
                         warnings.push({
                             title: 'Insufficient Balance',
-                            message: `Add the income to continue expense. (Expense exceeds income by $${(newExpenseTotal - data.totalIncome).toFixed(2)})`
+                            message: `Add the income to continue expense. (Expense exceeds income by ₹${(newExpenseTotal - data.totalIncome).toFixed(2)})`
                         });
                     }
                 }
@@ -432,7 +432,7 @@
                         if (newExpenseTotal > data.globalBudget) {
                             warnings.push({
                                 title: 'Budget Exceeded',
-                                message: `It is exceed. Increase budget to do more expense. (Expense exceeds budget by $${(newExpenseTotal - data.globalBudget).toFixed(2)})`
+                                message: `It is exceed. Increase budget to do more expense. (Expense exceeds budget by ₹${(newExpenseTotal - data.globalBudget).toFixed(2)})`
                             });
                         }
                     }
@@ -611,7 +611,7 @@
         }).then(res => {
             if (res.ok || res.redirected) {
                 statusToast.className = 'fixed top-4 right-4 z-50 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg slide-in flex items-center gap-2';
-                statusToast.innerHTML = `<span class="material-symbols-outlined text-sm">check_circle</span> Saved to DB: <strong>${description}</strong> ($${amount ? amount.toFixed(2) : '0.00'})`;
+                statusToast.innerHTML = `<span class="material-symbols-outlined text-sm">check_circle</span> Saved to DB: <strong>${description}</strong> (₹${amount ? amount.toFixed(2) : '0.00'})`;
                 document.getElementById('quick-ingest-text').value = '';
                 setTimeout(() => window.location.reload(), 1500);
             } else {
@@ -672,7 +672,7 @@
             icon.textContent = 'mic';
             setTimeout(() => {
                 if (textarea.value === '') {
-                    textarea.placeholder = "e.g. Sent $45.00 to Reliance Mart for Groceries on 2026-05-25";
+                    textarea.placeholder = "e.g. Sent ₹45.00 to Reliance Mart for Groceries on 2026-05-25";
                 }
             }, 3000);
         };

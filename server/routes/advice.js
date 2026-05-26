@@ -67,10 +67,10 @@ router.get('/insights', async (req, res) => {
         if (apiKey) {
             try {
                 // Formulate detailed context for AI Advisor
-                const systemPrompt = `You are FraudGuard AI, a premium personal wealth advisor. Generate exactly 3 highly actionable, ultra-personalized financial bullet-point recommendations for the user based on their monthly metrics. Be concise, direct, professional, and supportive. Focus on budget overruns, savings milestones, and security. Keep each bullet point under 18 words and do not include any markdown bolding symbols (*).`;
+                const systemPrompt = `You are Finova AI, a premium personal wealth advisor. Generate exactly 3 highly actionable, ultra-personalized financial bullet-point recommendations for the user based on their monthly metrics. Be concise, direct, professional, and supportive. Focus on budget overruns, savings milestones, and security. Keep each bullet point under 18 words and do not include any markdown bolding symbols (*).`;
                 const userPrompt = `Monthly Metrics:
-- Net Income: $${totalIncome.toLocaleString()}
-- Monthly Expenses: $${totalSpent.toLocaleString()}
+- Net Income: ₹${totalIncome.toLocaleString()}
+- Monthly Expenses: ₹${totalSpent.toLocaleString()}
 - Active Budget Compliance: ${JSON.stringify(budgetSummaries)}
 - Savings Goals Goals: ${JSON.stringify(savingsGoals.map(g => ({ title: g.title, target: g.targetAmount, current: g.currentAmount })))}
 - Flagged Security Risks: ${flaggedCount} transaction alerts active.`;
@@ -110,7 +110,7 @@ router.get('/insights', async (req, res) => {
             const urgentGoal = savingsGoals.find(g => (g.currentAmount / g.targetAmount) < 0.5);
 
             if (overbudgets.length > 0) {
-                adviceList.push(`Over budget in "${overbudgets[0].category}" by $${Math.round(overbudgets[0].spent - overbudgets[0].limit).toLocaleString()}. Reallocate from minor categories.`);
+                adviceList.push(`Over budget in "${overbudgets[0].category}" by ₹${Math.round(overbudgets[0].spent - overbudgets[0].limit).toLocaleString()}. Reallocate from minor categories.`);
             } else if (totalSpent > totalIncome * 0.8 && totalIncome > 0) {
                 adviceList.push(`Total expense velocity is high (spent ${Math.round((totalSpent / totalIncome) * 100)}% of income). Shift to defensive spending mode.`);
             } else {
@@ -119,7 +119,7 @@ router.get('/insights', async (req, res) => {
 
             if (urgentGoal) {
                 const remainder = urgentGoal.targetAmount - urgentGoal.currentAmount;
-                adviceList.push(`Goal "${urgentGoal.title}" is underfunded. Deposit $${Math.round(remainder * 0.1).toLocaleString()} this week to maintain progress.`);
+                adviceList.push(`Goal "${urgentGoal.title}" is underfunded. Deposit ₹${Math.round(remainder * 0.1).toLocaleString()} this week to maintain progress.`);
             } else if (savingsGoals.length > 0) {
                 adviceList.push(`Savings targets are progressing smoothly. Keep adding monthly milestone deposits.`);
             } else {

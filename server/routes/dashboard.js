@@ -108,15 +108,15 @@ router.get('/dashboard', async (req, res) => {
 
         // 2. Processed Volume (Sum of all transaction amounts in range)
         const processedVolumeSum = transactions.reduce((sum, t) => sum + t.amount, 0);
-        const processedVolume = `$${processedVolumeSum.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+        const processedVolume = `₹${processedVolumeSum.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
 
         // 3. Prevented Losses (Sum of flagged expense transactions in range)
         const preventedLossesSum = transactions
             .filter(t => t.isFlagged && t.type === 'expense')
             .reduce((sum, t) => sum + t.amount, 0);
         const preventedLosses = preventedLossesSum > 0 
-            ? `$${preventedLossesSum.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
-            : '$0';
+            ? `₹${preventedLossesSum.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
+            : '₹0';
         // 3.5 Previous Period calculations for Trend Data
         const durationMs = endDate - startDate;
         const durationDays = Math.max(1, Math.round(durationMs / (1000 * 60 * 60 * 24)));
@@ -289,8 +289,8 @@ router.get('/dashboard', async (req, res) => {
 
             const formatLabel = (val) => {
                 if (val === 0) return '0';
-                if (val >= 1000) return `$${(val / 1000).toFixed(1)}k`;
-                return `$${val}`;
+                if (val >= 1000) return `₹${(val / 1000).toFixed(1)}k`;
+                return `₹${val}`;
             };
 
             return {
@@ -311,7 +311,7 @@ router.get('/dashboard', async (req, res) => {
         ].map(val => {
             if (val === 0) return '0';
             if (val >= 1000) return `${(val / 1000).toFixed(0)}k`;
-            return `$${val}`;
+            return `₹${val}`;
         });
 
         let chartLabels = [];
